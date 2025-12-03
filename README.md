@@ -1,2 +1,4 @@
-# aarch64-arm-assembly-raytracer
-A raytracer written in aarch64 assembly, following "Raytracing in One Weekend"
+# aarch64/arm assembly raytracer
+
+A raytracer following the Raytracing tutorials from Peter Shirley, Trevor David Black and Steve Hollasch.
+
