@@ -1,8 +1,10 @@
 #!/bin/bash
 
 rm main
-rm test.ppm
+rm image.png
 as ./src/main.s -o main.o
 ld main.o -o main
 rm main.o
 ./main
+magick image.ppm image.png
+rm image.ppm

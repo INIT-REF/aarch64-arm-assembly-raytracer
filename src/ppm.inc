@@ -25,7 +25,10 @@ ppm_header:
     sub     x28, x28, #1
     bl      convert
     ldr     x0, fd
+    add     x28, x28, #1
+    add     x1, x1, x28
     mov     x2, #12
+    sub     x2, x2, x28
     mov     x8, #64
     svc     #0
    
@@ -54,4 +57,40 @@ convert:
     strb    w4, [x1, x28]
     sub     x28, x28, #1
     cbnz    x0, convert
+    ret
+
+// convert contents of ibuff to RGB triples and write to file
+write_line:
+    ldr     x0, =ibuff
+    ldr     x1, =lbuff
+    ldr     x2, =lut
+    eor     x3, x3, x3
+    eor     x4, x4, x4
+    
+int2col:
+    ldr     w5, [x0, x3, lsl #2]
+    mov     x6, x5
+    lsr     x6, x6, #16
+    ldr     w7, [x2, x6, lsl #2]
+    str     w7, [x1, x4]
+    add     x4, x4, #4
+    mov     x6, x5
+    lsr     x6, x6, #8
+    and     x6, x6, #255
+    ldr     w7, [x2, x6, lsl #2]
+    str     w7, [x1, x4]
+    add     x4, x4, #4
+    and     x5, x5, #255
+    ldr     w7, [x2, x5, lsl #2]
+    str     w7, [x1, x4]
+    add     x4, x4, #4
+    add     x3, x3, #1
+    cmp     x3, width
+    b.lt    int2col
+
+    ldr     x0, fd
+    ldr     x1, =lbuff
+    ldr     x2, =12 * width
+    mov     x8, #64
+    svc     #0
     ret
