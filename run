@@ -1,0 +1,7 @@
+#!/bin/bash
+
+rm main
+as ./src/main.s -o main.o
+ld main.o -o main
+rm main.o
+./main
