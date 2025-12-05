@@ -19,21 +19,24 @@ ppm_header:
     mov     x28, #10
     bl      convert
     ldr     x0, =width
-    mov     x3, #32
-    strb    w3, [x1, x28]
+    mov     x2, #32
+    strb    w2, [x1, x28]
+    mov     x2, #10
     sub     x28, x28, #1
     bl      convert
     ldr     x0, fd
     mov     x2, #12
     mov     x8, #64
     svc     #0
-
+   
+    // write "255" to file
     ldr     x0, fd
     ldr     x1, =_255
     mov     x2, #4
     mov     x8, #64
     svc     #0
-    
+
+     
     // cleanup
     ldp     fp, lr, [sp], #0x10
     ldr     x21, [sp, #0x10]
