@@ -8,6 +8,12 @@
 
     ppm_file: .asciz "test.ppm"
 
+.section .data
+    .align 3
+    
+    // for the file descriptor
+    fd: .dword 0 
+
 .section .text
 
 _start:
@@ -21,8 +27,9 @@ _start:
     //cmp     x0, #0
     //blt     exit
 
-    // save file handle
-    mov     x5, x0
+    // save file descriptor
+    ldr     x1, =fd
+    str     x0, [x1]
 
     // write to file
     ldr     x1, =hello
@@ -30,12 +37,12 @@ _start:
     mov     x8, #64
     svc     #0
 
-    // close file
-    mov     x0, x5
+
+// close file and exit
+exit:
+    ldr     x0, fd
     mov     x8, #57
     svc     #0
-
-exit:
     mov     x0, #0
     mov     w8, #93
     svc     #0
