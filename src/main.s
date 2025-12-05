@@ -1,41 +1,43 @@
 .global _start
 
 .section .rodata
-    
-    .align 3
-    hello: .ascii "Hello, World!\n"
-    len = . - hello
+    // output image dimensions
+    width  = 1024
+    height = 576    
 
-    ppm_file: .asciz "test.ppm"
+    // ppm-file related
+    file: .asciz "test.ppm"
+    P3:   .ascii "P3\n"
+    _255: .ascii "255\n"
 
 .section .data
     .align 3
     
     // for the file descriptor
-    fd: .dword 0 
+    fd: .dword 0
+
+.section .bss
+    // buffer for variable ppm header (width, height) 
+    hbuff: .fill 12, 1
 
 .section .text
 
 _start:
     // open file
     mov     x0, #-100 
-    ldr     x1, =ppm_file
+    ldr     x1, =file
     mov     x2, #0x41
     mov     x3, #0666
     mov     x8, #56
     svc     #0
-    //cmp     x0, #0
-    //blt     exit
 
     // save file descriptor
     ldr     x1, =fd
     str     x0, [x1]
+    
+    // write ppm_header to file    
+    bl      ppm_header
 
-    // write to file
-    ldr     x1, =hello
-    ldr     x2, =len
-    mov     x8, #64
-    svc     #0
 
 
 // close file and exit
@@ -46,3 +48,5 @@ exit:
     mov     x0, #0
     mov     w8, #93
     svc     #0
+
+.include "./src/ppm.inc"

@@ -1,6 +1,7 @@
 #!/bin/bash
 
 rm main
+rm test.ppm
 as ./src/main.s -o main.o
 ld main.o -o main
 rm main.o
