@@ -107,6 +107,8 @@ render:
     add     x28, x28, #1
     cmp     x28, width
     b.lt    render
+    
+    // row done, write to file, reset column counter and continue with next row
     bl      write_line
     eor     x28, x28, x28
     add     x29, x29, #1
