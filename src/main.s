@@ -6,22 +6,22 @@
     height = 576
 
     // camera setup
-    cam_center:      .dword 0.0, 0.0, 0.0, 0.0
-    focal_length:    .dword 1.0
-    viewport_height: .dword 2.0
+    cam_center:      .float 0.0, 0.0, 0.0, 0.0
+    focal_length:    .float 1.0
+    viewport_height: .float 2.0
 
     // some utility vectors
-    white:  .dword  1.0,  1.0,  1.0, 0.0
-    _white: .dword -1.0, -1.0, -1.0, 0.0
-    black:  .dword  0.0,  0.0,  0.0, 0.0
-    red:    .dword  1.0,  0.0,  0.0, 0.0
-    sky:    .dword  0.5,  0.7,  1.0, 0.0
-    half:   .dword  0.5,  0.5,  0.5, 0.0
-    double: .dword  2.0,  2.0,  2.0, 2.0
-    z_1:    .dword  0.0,  0.0,  1.0, 0.0
+    white:  .float  1.0,  1.0,  1.0, 0.0
+    _white: .float -1.0, -1.0, -1.0, 0.0
+    black:  .float  0.0,  0.0,  0.0, 0.0
+    red:    .float  1.0,  0.0,  0.0, 0.0
+    sky:    .float  0.5,  0.7,  1.0, 0.0
+    half:   .float  0.5,  0.5,  0.5, 0.0
+    double: .float  2.0,  2.0,  2.0, 2.0
+    z_1:    .float  0.0,  0.0,  1.0, 0.0
 
-    not_1:  .dword 0.999, 0.999, 0.999, 0.0
-    _256:   .dword 256.0, 256.0, 256.0, 0.0
+    not_1:  .float 0.999, 0.999, 0.999, 0.0
+    _256:   .float 256.0, 256.0, 256.0, 0.0
 
     // ppm-file related
     file: .asciz "image.ppm"
