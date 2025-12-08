@@ -110,12 +110,10 @@ _start:
 
 // main rendering loop
 render:
-    //scvtf   s2, w28
-    //scvtf   s3, w29
-    //fdiv    s2, s2, s0
-    //fdiv    s3, s3, s1
-    fmov    s2, #0.5
-    fmov    s3, #0.5
+    scvtf   s2, w28
+    scvtf   s3, w29
+    fdiv    s2, s2, s0
+    fdiv    s3, s3, s1
     ldr     x6, =raycol
     str     s2, [x6]
     str     s3, [x6, #4]
@@ -133,6 +131,7 @@ clamp:
     ldr     x6, =_256
     ld1     {v6.4s}, [x6]
     fmul    v4.4s, v4.4s, v6.4s
+    
     // convert raycol vector to integer
     fcvtzu  v4.4s, v4.4s
     ldr     x6, =raycol
