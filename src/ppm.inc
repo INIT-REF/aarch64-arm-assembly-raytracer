@@ -87,6 +87,9 @@ int2col:
     add     x3, x3, #1
     cmp     x3, width
     b.lt    int2col
+    sub     x4, x4, #1
+    mov     x7, #'\n'
+    strb    w7, [x1, x4]
 
     ldr     x0, fd
     ldr     x1, =lbuff

@@ -62,7 +62,7 @@
     lbuff: .fill width * 12, 1
 
     // memory for the viewport
-    viewport: .fill 23, 8
+    viewport: .fill 30, 4
 
     // viewport indices:
     //   0 -> width
@@ -76,7 +76,10 @@
     // 160 -> pixel00_loc
 
     // memory for the ray
-    ray: .fill 6, 8
+    ray: .fill 8, 4
+    
+    // memory for the ray color
+    raycol: .fill 4, 4
 
 .section .text
 
@@ -98,12 +101,51 @@ _start:
 
     eor     x28, x28, x28
     eor     x29, x29, x29
-    ldr     x27, =0x808080
+    ldr     x1, =width
+    ldr     x2, =height
+    sub     x1, x1, #1
+    sub     x2, x2, #1
+    scvtf   s0, w1
+    scvtf   s1, w2
 
 // main rendering loop
 render:
-    ldr     x10, =ibuff
-    str     w27, [x10, x28, lsl #2]
+    //scvtf   s2, w28
+    //scvtf   s3, w29
+    //fdiv    s2, s2, s0
+    //fdiv    s3, s3, s1
+    fmov    s2, #0.5
+    fmov    s3, #0.5
+    ldr     x6, =raycol
+    str     s2, [x6]
+    str     s3, [x6, #4]
+    ld1     {v4.4s}, [x6]
+
+// clamp raycol values to interval 0.0 ... 0.999
+// convert to integer value and store in ibuff
+clamp:
+    ldr     x6, =not_1
+    ldr     x7, =black
+    ld1     {v6.4s}, [x6]
+    ld1     {v7.4s}, [x7]
+    smin    v4.4s, v4.4s, v6.4s
+    smax    v4.4s, v4.4s, v7.4s
+    ldr     x6, =_256
+    ld1     {v6.4s}, [x6]
+    fmul    v4.4s, v4.4s, v6.4s
+    // convert raycol vector to integer
+    fcvtzu  v4.4s, v4.4s
+    ldr     x6, =raycol
+    st1     {v4.4s}, [x6]
+    ldr     w0, [x6]
+    lsl     x0, x0, #16
+    ldr     w1, [x6, #4]
+    lsl     x1, x1, #8
+    add     x0, x0, x1
+    ldr     w1, [x6, #8]
+    add     x0, x0, x1
+    ldr     x1, =ibuff
+    str     w0, [x1, x28, lsl #2]
     add     x28, x28, #1
     cmp     x28, width
     b.lt    render

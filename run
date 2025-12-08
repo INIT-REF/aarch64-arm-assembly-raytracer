@@ -7,4 +7,5 @@ ld main.o -o main
 rm main.o
 ./main
 magick image.ppm image.png
-rm image.ppm
+#rm image.ppm
+
