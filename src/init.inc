@@ -65,7 +65,6 @@ vp_init:
     fmul    s3, s3, s4
     mov     v1.s[0], v2.s[0]
     mov     v1.s[1], v3.s[0]
-t:
     fsub    v0.4s, v0.4s, v1.4s
     add     x1, x0, #88
     st1     {v0.4s}, [x1]
