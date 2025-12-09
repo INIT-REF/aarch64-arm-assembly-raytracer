@@ -64,8 +64,8 @@ write_line:
     ldr     x0, =ibuff
     ldr     x1, =lbuff
     ldr     x2, =lut
-    eor     x3, x3, x3
-    eor     x4, x4, x4
+    mov     x3, xzr
+    mov     x4, xzr
     
 int2col:
     ldr     w5, [x0, x3, lsl #2]
