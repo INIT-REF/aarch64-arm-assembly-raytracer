@@ -135,8 +135,6 @@ render:
     bl      hit_sphere
 
     // if discriminant < 0, we have no hit
-    fcmge   s5, s4, #0.0
-    fcvtzu  x0, s5 
     cbz     x0, skycol
 
     // if we have a hit, we set the ray color to red
@@ -148,7 +146,7 @@ skycol:
     // set sky color
     ldr     x0, =ray
     add     x0, x0, #16
-    st1     {v0.4s}, [x0]
+    ld1     {v0.4s}, [x0]
     mov     v1.16b, v0.16b
     fmul    v1.4s, v1.4s, v1.4s
     faddp   v1.4s, v1.4s, v1.4s

@@ -10,6 +10,7 @@ hit_sphere:
     // get a in s1
     add     x0, x0, #16     // ray direction
     ld1     {v1.4s}, [x0]
+    fmul    v1.4s, v1.4s, v1.4s
     faddp   v1.4s, v1.4s, v1.4s 
     faddp   v1.4s, v1.4s, v1.4s 
 
@@ -32,4 +33,8 @@ hit_sphere:
     fmul    s4, s2, s2
     fmul    s5, s1, s3
     fsub    s4, s4, s5
+    
+    // check if discriminant >= 0
+    fcmge   s5, s4, #0.0
+    fmov    w0, s5
     ret 
