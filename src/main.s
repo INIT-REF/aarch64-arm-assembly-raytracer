@@ -170,7 +170,6 @@ skycol:
     
  
 // clamp raycol values to interval 0.0 ... 0.999
-// convert to integer value and store in ibuff
 clamp:
     ldr     x1, =not_1
     ldr     x2, =black
@@ -182,7 +181,7 @@ clamp:
     ld1     {v1.4s}, [x1]
     fmul    v0.4s, v0.4s, v1.4s
     
-    // convert raycol vector to integer
+    // convert raycol vector to integer and store result in ibuff
     fcvtzu  v0.4s, v0.4s
     ldr     x2, =raycol
     st1     {v0.4s}, [x2]
@@ -195,6 +194,8 @@ clamp:
     add     x0, x0, x1
     ldr     x1, =ibuff
     str     w0, [x1, x28, lsl #2]
+
+    // continue loop
     add     x28, x28, #1
     cmp     x28, width
     blt     render
