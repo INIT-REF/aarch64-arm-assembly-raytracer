@@ -10,6 +10,9 @@
     focal_length:    .float 1.0
     viewport_height: .float 2.0
 
+    // include the scene
+    .include "./src/world.inc"
+
     // some utility vectors
     white:  .float  1.0,  1.0,  1.0, 0.0
     _white: .float -1.0, -1.0, -1.0, 0.0
@@ -124,8 +127,28 @@ render:
     add     x1, x0, #104
     ld1     {v1.4s}, [x1]
     fadd    v0.4s, v0.4s, v1.4s
+    ldr     x0, =ray
+    add     x0, x0, #16
+    st1     {v0.4s}, [x0]           // ray direction
 
-    // get ray color
+    // check if we have a hit
+    bl      hit_sphere
+
+    // if discriminant < 0, we have no hit
+    fcmge   s5, s4, #0.0
+    fcvtzu  x0, s5 
+    cbz     x0, skycol
+
+    // if we have a hit, we set the ray color to red
+    ldr     x0, =red
+    ld1     {v0.4s}, [x0]
+    b       clamp
+
+skycol:
+    // set sky color
+    ldr     x0, =ray
+    add     x0, x0, #16
+    st1     {v0.4s}, [x0]
     mov     v1.16b, v0.16b
     fmul    v1.4s, v1.4s, v1.4s
     faddp   v1.4s, v1.4s, v1.4s
@@ -146,8 +169,6 @@ render:
     ld1     {v2.4s}, [x0]
     fmul    v1.4s, v1.4s, v2.4s
     fadd    v0.4s, v0.4s, v1.4s
-    ldr     x0, =raycol
-    st1     {v0.4s}, [x0]
     
  
 // clamp raycol values to interval 0.0 ... 0.999
@@ -182,7 +203,7 @@ clamp:
     
     // row done, write to file, reset column counter and continue with next row
     bl      write_line
-    eor     x28, x28, x28
+    mov     x28, xzr
     add     x29, x29, #1
     cmp     x29, height
     blt     render
@@ -199,3 +220,4 @@ exit:
 
 .include "./src/ppm.inc"
 .include "./src/init.inc"
+.include "./src/shapes.inc"

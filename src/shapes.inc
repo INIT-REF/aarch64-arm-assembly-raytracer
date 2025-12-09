@@ -1,0 +1,35 @@
+// ray vs sphere
+hit_sphere:
+    // get oc in v0
+    ldr     x0, =ray
+    ldr     x1, =spheres
+    ld1     {v0.4s}, [x0]
+    ld1     {v1.4s}, [x1]
+    fsub    v0.4s, v1.4s, v0.4s     
+
+    // get a in s1
+    add     x0, x0, #16     // ray direction
+    ld1     {v1.4s}, [x0]
+    faddp   v1.4s, v1.4s, v1.4s 
+    faddp   v1.4s, v1.4s, v1.4s 
+
+    // get h in s2
+    ld1     {v2.4s}, [x0]
+    fmul    v2.4s, v2.4s, v0.4s
+    faddp   v2.4s, v2.4s, v2.4s
+    faddp   v2.4s, v2.4s, v2.4s
+    
+    // get c in s3
+    fmul    v0.4s, v0.4s, v0.4s
+    faddp   v0.4s, v0.4s, v0.4s
+    faddp   v0.4s, v0.4s, v0.4s
+    add     x1, x1, #16
+    ldr     s3, [x1]
+    fmul    s3, s3, s3
+    fsub    s3, s0, s3
+
+    //get discriminant in s4
+    fmul    s4, s2, s2
+    fmul    s5, s1, s3
+    fsub    s4, s4, s5
+    ret 
