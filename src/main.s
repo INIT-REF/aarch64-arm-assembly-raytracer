@@ -170,6 +170,7 @@ skycol:
     
  
 // clamp raycol values to interval 0.0 ... 0.999
+// convert to integer value and store in ibuff
 clamp:
     ldr     x1, =not_1
     ldr     x2, =black
