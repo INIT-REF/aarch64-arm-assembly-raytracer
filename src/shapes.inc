@@ -48,8 +48,8 @@ hit_sphere:
 
     // get t, try first root (h - sqrt(d))
     fsqrt   s4, s4
-    fsub    s5, s2, s4
-    fdiv    s0, s5, s1
+    fsub    s3, s2, s4
+    fdiv    s0, s3, s1
     fcmge   s5, s0, s30
     fcmge   s6, s31, s0
     fmov    w0, s5
@@ -58,8 +58,8 @@ hit_sphere:
     cbnz    x0, set_hit
 
     // try (h + sqrt(d))
-    fadd    s5, s2, s4
-    fdiv    s0, s5, s1
+    fadd    s3, s2, s4
+    fdiv    s0, s3, s1
     fcmge   s5, s0, s30
     fcmge   s6, s31, s0
     fmov    w0, s5
@@ -69,7 +69,7 @@ hit_sphere:
 
 set_hit:
     str     s0, [x26, #32]      // hit.t
-    fmov    s31, s0             // = new t_max
+    //fmov    s31, s0             // = new t_max
     ld1     {v1.4s}, [x22]
     add     x0, x22, #16
     ld1     {v2.4s}, [x0]
@@ -84,8 +84,6 @@ set_hit:
     ldr     s1, [x0]
     dup     v1.4s, v1.s[0]
     fdiv    v0.4s, v0.4s, v1.4s // normal = (hit.point - center) / radius
-    movi    d1, #0
-    mov     v0.s[0], v1.s[0]
 
     // set normal direction
     fmul    v1.4s, v0.4s, v2.4s
@@ -105,4 +103,8 @@ hit_done:
     mov     x0, #1    
 
 hit_sphere_done:
+    //  try next sphere
+    add     x10, x10, #20
+    cmp     x10, 20
+    ble     hit_sphere
     ret 
