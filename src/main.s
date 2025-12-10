@@ -106,31 +106,34 @@ _start:
     // initialize the viewport
     bl      vp_init
 
-    mov     x19, xzr
-    mov     x20, xzr
-
+    // initialize some non-volatile registers
+    mov     x19, xzr        // column index
+    mov     x20, xzr        // row index
+    ldr     x21, =viewport
+    ldr     x22, =ray
+    ldr     x23, =raycol
+    ldr     x24, =ibuff
 
 // main rendering loop
 render:
-    // get pixel center
-    ldr     x0, =viewport
+    // get ray
+    mov     x1, xzr
     dup     v0.4s, w19
     dup     v1.4s, w20
     scvtf   v0.4s, v0.4s
     scvtf   v1.4s, v1.4s
-    add     x1, x0, #56
+    add     x1, x21, #56
     ld1     {v2.4s}, [x1] 
-    add     x1, x0, #72
+    add     x1, x21, #72
     ld1     {v3.4s}, [x1]
     fmul    v0.4s, v0.4s, v2.4s
     fmul    v1.4s, v1.4s, v3.4s
     fadd    v0.4s, v0.4s, v1.4s
-    add     x1, x0, #104
+    add     x1, x21, #104
     ld1     {v1.4s}, [x1]
     fadd    v0.4s, v0.4s, v1.4s
-    ldr     x0, =ray
-    add     x0, x0, #16
-    st1     {v0.4s}, [x0]           // ray direction
+    add     x0, x22, #16
+    st1     {v0.4s}, [x0]
 
     // check if we have a hit
     bl      hit_sphere
@@ -138,15 +141,13 @@ render:
     // if discriminant < 0, we have no hit
     cbz     x0, skycol
 
-    // if we have a hit, we set the ray color to red
-    ldr     x0, =red
-    ld1     {v0.4s}, [x0]
+    // if we have a hit, set color according to normal
     b       clamp
 
 skycol:
     // set sky color
-    ldr     x0, =ray
-    add     x0, x0, #16
+    mov     x0, xzr
+    add     x0, x22, #16
     ld1     {v0.4s}, [x0]
     mov     v1.16b, v0.16b
     fmul    v1.4s, v1.4s, v1.4s
@@ -161,9 +162,8 @@ skycol:
     fadd    s2, s2, s0
     fmul    s1, s1, s2          // a
     dup     v1.4s, v1.s[0]
-    ldr     x0, =white
-    ld1     {v0.4s}, [x0]
-    fsub    v0.4s, v0.4s, v1.4s
+    fmov    v0.4s, #1.0
+    fsub    v0.4s, v0.4s, v1.4s // 1 - a
     ldr     x0, =sky
     ld1     {v2.4s}, [x0]
     fmul    v1.4s, v1.4s, v2.4s
@@ -185,17 +185,15 @@ clamp:
     
     // convert raycol vector to integer and store result in ibuff
     fcvtzu  v0.4s, v0.4s
-    ldr     x2, =raycol
-    st1     {v0.4s}, [x2]
-    ldr     w0, [x2]
+    st1     {v0.4s}, [x23]
+    ldr     w0, [x23]
     lsl     x0, x0, #16
-    ldr     w1, [x2, #4]
+    ldr     w1, [x23, #4]
     lsl     x1, x1, #8
     add     x0, x0, x1
-    ldr     w1, [x2, #8]
+    ldr     w1, [x23, #8]
     add     x0, x0, x1
-    ldr     x1, =ibuff
-    str     w0, [x1, x19, lsl #2]
+    str     w0, [x24, x19, lsl #2]
 
     // continue loop
     add     x19, x19, #1

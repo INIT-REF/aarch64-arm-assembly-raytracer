@@ -34,7 +34,16 @@ hit_sphere:
     fmul    s5, s1, s3
     fsub    s4, s4, s5
     
-    // check if discriminant >= 0
+    // check if discriminant >= 0 and break if not
     fcmge   s5, s4, #0.0
     fmov    w0, s5
+    cbz     w0, hit_sphere_done
+
+    // get t and set x0 to "true"
+    fsqrt   s5, s5
+    fsub    s2, s2, s5
+    fdiv    s2, s2, s1
+    mov     x0, #1
+
+hit_sphere_done:
     ret 
