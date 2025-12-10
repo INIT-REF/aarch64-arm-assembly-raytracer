@@ -75,6 +75,14 @@
 
     // memory for the ray
     ray: .fill 8, 4
+
+    // memory for the hit record
+    hit: .fill 10, 4
+
+    // hit record indices
+    //  0 -> point
+    // 16 -> normal
+    // 32 -> t
     
     // memory for the ray color
     raycol: .fill 4, 4
@@ -100,14 +108,16 @@ _start:
     // initialize the viewport
     bl      vp_init
 
-    // initialize some non-volatile registers
+    // initialize common non-volatile registers
     mov     x19, xzr        // column index
     mov     x20, xzr        // row index
     ldr     x21, =viewport
     ldr     x22, =ray
     ldr     x23, =raycol
-    ldr     x24, =ibuff
+    ldr     x24, =lbuff
     ldr     x25, =spheres
+    ldr     x26, =hit
+    ldr     x27, =lut
 
     // set ray origin = camera center
     add     x0, x21, #8
@@ -200,17 +210,17 @@ clamp:
     ld1     {v1.4s}, [x0]
     fmul    v0.4s, v0.4s, v1.4s
     
-    // convert raycol vector to integer and store result in ibuff
+    // convert raycol vector to string and store result in lbuff
     fcvtzu  v0.4s, v0.4s
-    st1     {v0.4s}, [x23]
-    ldr     w0, [x23]
-    lsl     x0, x0, #16
-    ldr     w1, [x23, #4]
-    lsl     x1, x1, #8
-    add     x0, x0, x1
-    ldr     w1, [x23, #8]
-    add     x0, x0, x1
-    str     w0, [x24, x19, lsl #2]
+    mov     w0, v0.4s[0]
+    ldr     w0, [x27, x0, lsl #2]   // get R substring from lut
+    str     w0, [x24], #4           // and store in lbuff
+    mov     w0, v0.4s[1]
+    ldr     w0, [x27, x0, lsl #2]   // same for G and B
+    str     w0, [x24], #4
+    mov     w0, v0.4s[2]
+    ldr     w0, [x27, x0, lsl #2]
+    str     w0, [x24], #4
 
     // continue loop
     add     x19, x19, #1
@@ -218,8 +228,17 @@ clamp:
     blt     render
     
     // row done, write to file, reset column counter and continue with next row
-    bl      write_line
+    mov     x0, #'\n'
+    sub     x24, x24, #1
+    strb    w0, [x24]
+    ldr     x0, fd
+    ldr     x1, =lbuff
+    ldr     x2, =12 * width
+    mov     x8, #64
+    svc     #0
+
     mov     x19, xzr
+    ldr     x24, =lbuff
     add     x20, x20, #1
     cmp     x20, height
     blt     render

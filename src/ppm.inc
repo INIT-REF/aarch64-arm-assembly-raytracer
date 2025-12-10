@@ -43,38 +43,3 @@ width2string:
     mov     x8, #64
     svc     #0
     ret
-
-
-// convert contents of ibuff to RGB triples and write to file
-write_line:
-    ldr     x0, =ibuff
-    ldr     x1, =lbuff
-    ldr     x2, =lut
-    mov     x3, xzr
-    
-int2col:
-    ldr     w5, [x0, x3, lsl #2]
-    mov     x6, x5
-    lsr     x6, x6, #16
-    ldr     w7, [x2, x6, lsl #2]
-    str     w7, [x1], #4
-    mov     x6, x5
-    lsr     x6, x6, #8
-    and     x6, x6, #255
-    ldr     w7, [x2, x6, lsl #2]
-    str     w7, [x1], #4
-    and     x5, x5, #255
-    ldr     w7, [x2, x5, lsl #2]
-    str     w7, [x1], #4
-    add     x3, x3, #1
-    cmp     x3, width
-    blt     int2col
-    mov     x7, #'\n'
-    sub     x1, x1, #1
-    strb    w7, [x1]
-    ldr     x0, fd
-    ldr     x1, =lbuff
-    ldr     x2, =12 * width
-    mov     x8, #64
-    svc     #0
-    ret
