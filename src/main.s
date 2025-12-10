@@ -197,10 +197,9 @@ skycol:
     fmul    v1.4s, v1.4s, v2.4s
     fadd    v0.4s, v0.4s, v1.4s
     
- 
-// clamp raycol values to interval 0.0 ... 0.999
-// convert to integer value and store in ibuff
+
 clamp:
+    // clamp raycol values to interval 0.0 ... 0.999
     ldr     x0, =not_1
     ld1     {v1.4s}, [x0]
     movi    v2.4s, #0
