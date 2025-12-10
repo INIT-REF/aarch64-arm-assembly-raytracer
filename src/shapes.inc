@@ -69,7 +69,7 @@ hit_sphere:
 
 set_hit:
     str     s0, [x26, #32]      // hit.t
-    //fmov    s31, s0             // = new t_max
+    fmov    s31, s0             // = new t_max
     ld1     {v1.4s}, [x22]
     add     x0, x22, #16
     ld1     {v2.4s}, [x0]
@@ -104,7 +104,7 @@ hit_done:
 
 hit_sphere_done:
     //  try next sphere
-    add     x10, x10, #20
-    cmp     x10, 20
-    ble     hit_sphere
+    //add     x10, x10, #20
+    //cmp     x10, 20
+    //ble     hit_sphere
     ret 
