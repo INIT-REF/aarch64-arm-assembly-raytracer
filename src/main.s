@@ -31,6 +31,7 @@
     P3:   .ascii "P3\n"
     _255: .ascii "255\n"
 
+
     // LUT for unsigned char to string
     lut: .ascii "000 001 002 003 004 005 006 007 008 009 010 011 012 013 014 015 016 017 018 019 "
          .ascii "020 021 022 023 024 025 026 027 028 029 030 031 032 033 034 035 036 037 038 039 "
@@ -53,10 +54,11 @@
     // for the file descriptor
     fd: .dword 0
 
+    // buffer for the variable PPM header data (width, height)
+    hbuff: .ascii "           \n"
+
 
 .section .bss
-    // buffer for variable ppm header (width, height) 
-    hbuff: .fill 12, 1
 
     // buffer for a row of RGB integers
     ibuff: .fill width, 4
@@ -105,16 +107,16 @@ _start:
     // initialize the viewport
     bl      vp_init
 
-    mov     x28, xzr
-    mov     x29, xzr
+    mov     x19, xzr
+    mov     x20, xzr
 
 
 // main rendering loop
 render:
     // get pixel center
     ldr     x0, =viewport
-    dup     v0.4s, w28
-    dup     v1.4s, w29
+    dup     v0.4s, w19
+    dup     v1.4s, w20
     scvtf   v0.4s, v0.4s
     scvtf   v1.4s, v1.4s
     add     x1, x0, #56
@@ -194,18 +196,18 @@ clamp:
     ldr     w1, [x2, #8]
     add     x0, x0, x1
     ldr     x1, =ibuff
-    str     w0, [x1, x28, lsl #2]
+    str     w0, [x1, x19, lsl #2]
 
     // continue loop
-    add     x28, x28, #1
-    cmp     x28, width
+    add     x19, x19, #1
+    cmp     x19, width
     blt     render
     
     // row done, write to file, reset column counter and continue with next row
     bl      write_line
-    mov     x28, xzr
-    add     x29, x29, #1
-    cmp     x29, height
+    mov     x19, xzr
+    add     x20, x20, #1
+    cmp     x20, height
     blt     render
 
 
