@@ -36,10 +36,10 @@ hit_sphere:
     fmov    w0, s5
     cbz     w0, hit_sphere_done
 
-    // get t and set x0 to "true"
+    // get t in s0 and set x0 to "true"
     fsqrt   s5, s5
     fsub    s2, s2, s5
-    fdiv    s2, s2, s1
+    fdiv    s0, s2, s1
     mov     x0, #1
 
 hit_sphere_done:

@@ -137,13 +137,18 @@ render:
     add     x0, x22, #16
     st1     {v0.4s}, [x0]
 
-    // check if we have a hit
+    // check if we have a hit and jump to skycol if not
     bl      hit_sphere
-
-    // if discriminant < 0, we have no hit
     cbz     x0, skycol
 
     // if we have a hit, set color according to normal
+    ld1     {v1.4s}, [x22]
+    add     x0, x22, #16
+    ld1     {v2.4s}, [x0]
+    dup     v0.4s, v0.s[0]
+    fmul    v2.4s, v2.4s, v0.4s
+    fadd    v0.4s, v0.4s, v1.4s     // ray at t
+      
     b       clamp
 
 skycol:
