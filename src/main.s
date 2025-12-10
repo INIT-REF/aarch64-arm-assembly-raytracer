@@ -14,8 +14,6 @@
     .include "./src/world.inc"
 
     // some utility vectors
-    _white: .float -1.0, -1.0, -1.0, 0.0
-    red:    .float  1.0,  0.0,  0.0, 0.0
     sky:    .float  0.5,  0.7,  1.0, 0.0
     z_1:    .float  0.0,  0.0,  1.0, 0.0
     
