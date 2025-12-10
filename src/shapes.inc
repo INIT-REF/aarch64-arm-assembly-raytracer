@@ -108,5 +108,7 @@ hit_sphere_done:
     add     x10, x10, #20
     cmp     x10, 20
     ble     hit_sphere
+
+    // when finished, set flag in x0
     mov     x0, x11
     ret 
