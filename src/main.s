@@ -111,12 +111,15 @@ _start:
     ldr     x24, =ibuff
     ldr     x25, =spheres
 
-// main rendering loop
-render:
-    // get ray
+    // set ray origin = camera center
     add     x0, x21, #8
     ld1     {v0.4s}, [x0]
-    st1     {v0.4s}, [x22]          // ray origin (camera center)
+    st1     {v0.4s}, [x22]
+
+
+// main rendering loop
+render:
+    // get ray direction
     dup     v0.4s, w19
     dup     v1.4s, w20
     scvtf   v0.4s, v0.4s
@@ -142,21 +145,32 @@ render:
     cbz     x0, skycol
 
     // if we have a hit, set color according to normal
+    dup     v0.4s, v0.s[0]
     ld1     {v1.4s}, [x22]
     add     x0, x22, #16
     ld1     {v2.4s}, [x0]
-    dup     v0.4s, v0.s[0]
     fmul    v2.4s, v2.4s, v0.4s
-    fadd    v0.4s, v0.4s, v1.4s     // ray at t
-      
+    fadd    v0.4s, v1.4s, v2.4s     // ray at t
+    ldr     x0, =z_1
+    ld1     {v1.4s}, [x0]
+    fadd    v0.4s, v0.4s, v1.4s
+    fmul    v1.4s, v0.4s, v0.4s
+    faddp   v1.4s, v1.4s, v1.4s
+    faddp   v1.4s, v1.4s, v1.4s
+    fsqrt   s1, s1
+    dup     v1.4s, v1.s[0]
+    fdiv    v0.4s, v0.4s, v1.4s     // normal
+    fmov    v1.4s, #1.0
+    fmov    v2.4s, #0.5
+    fadd    v0.4s, v0.4s, v1.4s
+    fmul    v0.4s, v0.4s, v2.4s     // final color
     b       clamp
 
 skycol:
     // set sky color
     add     x0, x22, #16
     ld1     {v0.4s}, [x0]
-    mov     v1.16b, v0.16b
-    fmul    v1.4s, v1.4s, v1.4s
+    fmul    v1.4s, v0.4s, v0.4s
     faddp   v1.4s, v1.4s, v1.4s
     faddp   v1.4s, v1.4s, v1.4s
     fsqrt   s1, s1

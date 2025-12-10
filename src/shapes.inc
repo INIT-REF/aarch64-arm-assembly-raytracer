@@ -37,8 +37,8 @@ hit_sphere:
     cbz     w0, hit_sphere_done
 
     // get t in s0 and set x0 to "true"
-    fsqrt   s5, s5
-    fsub    s2, s2, s5
+    fsqrt   s4, s4
+    fsub    s2, s2, s4
     fdiv    s0, s2, s1
     mov     x0, #1
 
