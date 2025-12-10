@@ -3,7 +3,8 @@ hit_anything:
     // get t_min and t_max, init spheres index
     ldr     s30, t_min
     ldr     s31, t_max
-    mov     x10, xzr
+    mov     x10, xzr    // object index
+    mov     x11, xzr    // hit flag
 
 
 // ray vs sphere
@@ -100,11 +101,12 @@ hit_done:
     st1     {v0.4s}, [x0]
 
     // hit_sphere = true
-    mov     x0, #1    
+    mov     x11, #1    
 
 hit_sphere_done:
     //  try next sphere
-    //add     x10, x10, #20
-    //cmp     x10, 20
-    //ble     hit_sphere
+    add     x10, x10, #20
+    cmp     x10, 20
+    ble     hit_sphere
+    mov     x0, x11
     ret 
