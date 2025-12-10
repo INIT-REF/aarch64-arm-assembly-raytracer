@@ -227,7 +227,7 @@ clamp:
     cmp     x19, width
     blt     render
     
-    // row done, write to file, reset column counter and continue with next row
+    // row done, write to file and continue with next row
     mov     x0, #'\n'
     sub     x24, x24, #1
     strb    w0, [x24]
