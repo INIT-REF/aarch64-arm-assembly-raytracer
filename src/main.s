@@ -20,6 +20,10 @@
     not_1:  .float 0.999, 0.999, 0.999, 0.0
     _256:   .float 256.0, 256.0, 256.0, 0.0
 
+    // t_min and t_max
+    t_min: .float 0.001
+    t_max: .dword 0x7f800000
+
     // ppm-file related
     file: .asciz "image.ppm"
     P3:   .ascii "P3\n"

@@ -1,3 +1,10 @@
+// ray vs world
+hit_anything:
+    // get t_min and t_max
+    ldr     s30, t_min
+    ldr     s31, t_max
+
+
 // ray vs sphere
 hit_sphere:
     // get oc in v0
