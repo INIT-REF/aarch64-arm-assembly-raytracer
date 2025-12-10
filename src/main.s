@@ -50,7 +50,7 @@
 
 .section .data
     .align 3
-    
+
     // for the file descriptor
     fd: .dword 0
 
@@ -59,7 +59,6 @@
 
 
 .section .bss
-
     // buffer for a row of RGB integers
     ibuff: .fill width, 4
 

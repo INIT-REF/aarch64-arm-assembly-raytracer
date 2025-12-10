@@ -51,7 +51,6 @@ write_line:
     ldr     x1, =lbuff
     ldr     x2, =lut
     mov     x3, xzr
-    mov     x4, xzr
     
 int2col:
     ldr     w5, [x0, x3, lsl #2]
