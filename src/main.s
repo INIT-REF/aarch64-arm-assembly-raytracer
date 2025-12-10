@@ -200,6 +200,7 @@ skycol:
 
 clamp:
     // clamp raycol values to interval 0.0 ... 0.999
+    // and convert to 0 ... 255 integer
     ldr     x0, =not_1
     ld1     {v1.4s}, [x0]
     movi    v2.4s, #0
@@ -208,9 +209,9 @@ clamp:
     ldr     x0, =_256
     ld1     {v1.4s}, [x0]
     fmul    v0.4s, v0.4s, v1.4s
-    
-    // convert raycol vector to string and store result in lbuff
     fcvtzu  v0.4s, v0.4s
+    
+    // convert raycol vector to string and store in lbuff
     mov     w0, v0.4s[0]
     ldr     w0, [x27, x0, lsl #2]   // get R substring from lut
     str     w0, [x24], #4           // and store in lbuff
