@@ -114,6 +114,9 @@ _start:
 // main rendering loop
 render:
     // get ray
+    add     x0, x21, #8
+    ld1     {v0.4s}, [x0]
+    st1     {v0.4s}, [x22]          // ray origin (camera center)
     dup     v0.4s, w19
     dup     v1.4s, w20
     scvtf   v0.4s, v0.4s
@@ -130,7 +133,7 @@ render:
     fadd    v0.4s, v0.4s, v1.4s     // pixel center
     add     x0, x21, #8
     ld1     {v1.4s}, [x0]
-    fsub    v0.4s, v0.4s, v1.4s     // ray origin (pixel center - camera center)
+    fsub    v0.4s, v0.4s, v1.4s     // ray direction (pixel center - camera center)
     add     x0, x22, #16
     st1     {v0.4s}, [x0]
 
