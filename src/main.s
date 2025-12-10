@@ -53,9 +53,6 @@
 
 
 .section .bss
-    // buffer for a row of RGB integers
-    ibuff: .fill width, 4
-
     // line buffer for a row of RGB triples
     lbuff: .fill width * 12, 1
 
