@@ -58,24 +58,21 @@ int2col:
     mov     x6, x5
     lsr     x6, x6, #16
     ldr     w7, [x2, x6, lsl #2]
-    str     w7, [x1, x4]
-    add     x4, x4, #4
+    str     w7, [x1], #4
     mov     x6, x5
     lsr     x6, x6, #8
     and     x6, x6, #255
     ldr     w7, [x2, x6, lsl #2]
-    str     w7, [x1, x4]
-    add     x4, x4, #4
+    str     w7, [x1], #4
     and     x5, x5, #255
     ldr     w7, [x2, x5, lsl #2]
-    str     w7, [x1, x4]
-    add     x4, x4, #4
+    str     w7, [x1], #4
     add     x3, x3, #1
     cmp     x3, width
     blt     int2col
-    sub     x4, x4, #1
     mov     x7, #'\n'
-    strb    w7, [x1, x4]
+    sub     x1, x1, #1
+    strb    w7, [x1]
     ldr     x0, fd
     ldr     x1, =lbuff
     ldr     x2, =12 * width
