@@ -14,15 +14,11 @@
     .include "./src/world.inc"
 
     // some utility vectors
-    white:  .float  1.0,  1.0,  1.0, 0.0
     _white: .float -1.0, -1.0, -1.0, 0.0
-    black:  .float  0.0,  0.0,  0.0, 0.0
     red:    .float  1.0,  0.0,  0.0, 0.0
     sky:    .float  0.5,  0.7,  1.0, 0.0
-    half:   .float  0.5,  0.5,  0.5, 0.0
-    double: .float  2.0,  2.0,  2.0, 2.0
     z_1:    .float  0.0,  0.0,  1.0, 0.0
-
+    
     not_1:  .float 0.999, 0.999, 0.999, 0.0
     _256:   .float 256.0, 256.0, 256.0, 0.0
 
@@ -113,25 +109,28 @@ _start:
     ldr     x22, =ray
     ldr     x23, =raycol
     ldr     x24, =ibuff
+    ldr     x25, =spheres
 
 // main rendering loop
 render:
     // get ray
-    mov     x1, xzr
     dup     v0.4s, w19
     dup     v1.4s, w20
     scvtf   v0.4s, v0.4s
     scvtf   v1.4s, v1.4s
-    add     x1, x21, #56
-    ld1     {v2.4s}, [x1] 
-    add     x1, x21, #72
-    ld1     {v3.4s}, [x1]
+    add     x0, x21, #56
+    ld1     {v2.4s}, [x0] 
+    add     x0, x21, #72
+    ld1     {v3.4s}, [x0]
     fmul    v0.4s, v0.4s, v2.4s
     fmul    v1.4s, v1.4s, v3.4s
     fadd    v0.4s, v0.4s, v1.4s
-    add     x1, x21, #104
-    ld1     {v1.4s}, [x1]
-    fadd    v0.4s, v0.4s, v1.4s
+    add     x0, x21, #104
+    ld1     {v1.4s}, [x0]
+    fadd    v0.4s, v0.4s, v1.4s     // pixel center
+    add     x0, x21, #8
+    ld1     {v1.4s}, [x0]
+    fsub    v0.4s, v0.4s, v1.4s     // ray origin (pixel center - camera center)
     add     x0, x22, #16
     st1     {v0.4s}, [x0]
 
@@ -146,7 +145,6 @@ render:
 
 skycol:
     // set sky color
-    mov     x0, xzr
     add     x0, x22, #16
     ld1     {v0.4s}, [x0]
     mov     v1.16b, v0.16b
@@ -173,14 +171,13 @@ skycol:
 // clamp raycol values to interval 0.0 ... 0.999
 // convert to integer value and store in ibuff
 clamp:
-    ldr     x1, =not_1
-    ldr     x2, =black
-    ld1     {v1.4s}, [x1]
-    ld1     {v2.4s}, [x2]
+    ldr     x0, =not_1
+    ld1     {v1.4s}, [x0]
+    movi    v2.4s, #0
     smin    v0.4s, v0.4s, v1.4s
     smax    v0.4s, v0.4s, v2.4s
-    ldr     x1, =_256
-    ld1     {v1.4s}, [x1]
+    ldr     x0, =_256
+    ld1     {v1.4s}, [x0]
     fmul    v0.4s, v0.4s, v1.4s
     
     // convert raycol vector to integer and store result in ibuff

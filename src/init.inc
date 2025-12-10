@@ -74,8 +74,7 @@ vp_init:
     ld1     {v1.4s}, [x1]
     add     x1, x0, #72
     ld1     {v2.4s}, [x1]
-    ldr     x1, =half
-    ld1     {v3.4s}, [x1]
+    fmov    v3.4s, #0.5
     fadd    v1.4s, v1.4s, v2.4s
     fmul    v1.4s, v1.4s, v3.4s
     fadd    v0.4s, v0.4s, v1.4s

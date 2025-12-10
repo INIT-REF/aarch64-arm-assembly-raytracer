@@ -1,14 +1,12 @@
 // ray vs sphere
 hit_sphere:
     // get oc in v0
-    ldr     x0, =ray
-    ldr     x1, =spheres
-    ld1     {v0.4s}, [x0]
-    ld1     {v1.4s}, [x1]
+    ld1     {v0.4s}, [x22]
+    ld1     {v1.4s}, [x25]
     fsub    v0.4s, v1.4s, v0.4s     
 
     // get a in s1
-    add     x0, x0, #16     // ray direction
+    add     x0, x22, #16     // ray direction
     ld1     {v1.4s}, [x0]
     fmul    v1.4s, v1.4s, v1.4s
     faddp   v1.4s, v1.4s, v1.4s 
@@ -24,8 +22,7 @@ hit_sphere:
     fmul    v0.4s, v0.4s, v0.4s
     faddp   v0.4s, v0.4s, v0.4s
     faddp   v0.4s, v0.4s, v0.4s
-    add     x1, x1, #16
-    ldr     s3, [x1]
+    ldr     s3, [x25, #16]
     fmul    s3, s3, s3
     fsub    s3, s0, s3
 
