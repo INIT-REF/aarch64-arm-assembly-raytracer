@@ -1,26 +1,28 @@
 // ray vs world
 hit_anything:
-    // get t_min and t_max
+    // get t_min and t_max, init spheres index
     ldr     s30, t_min
     ldr     s31, t_max
+    mov     x10, xzr
 
 
 // ray vs sphere
 hit_sphere:
     // get oc in v0
     ld1     {v0.4s}, [x22]
-    ld1     {v1.4s}, [x25]
+    add     x0, x25, x10
+    ld1     {v1.4s}, [x0]
     fsub    v0.4s, v1.4s, v0.4s     
 
     // get a in s1
-    add     x0, x22, #16     // ray direction
-    ld1     {v1.4s}, [x0]
+    add     x1, x22, #16
+    ld1     {v1.4s}, [x1]
+    mov     v2.16B, v1.16B
     fmul    v1.4s, v1.4s, v1.4s
     faddp   v1.4s, v1.4s, v1.4s 
     faddp   v1.4s, v1.4s, v1.4s 
 
     // get h in s2
-    ld1     {v2.4s}, [x0]
     fmul    v2.4s, v2.4s, v0.4s
     faddp   v2.4s, v2.4s, v2.4s
     faddp   v2.4s, v2.4s, v2.4s
@@ -29,7 +31,8 @@ hit_sphere:
     fmul    v0.4s, v0.4s, v0.4s
     faddp   v0.4s, v0.4s, v0.4s
     faddp   v0.4s, v0.4s, v0.4s
-    ldr     s3, [x25, #16]
+    add     x0, x0, #16
+    ldr     s3, [x0]
     fmul    s3, s3, s3
     fsub    s3, s0, s3
 
@@ -43,11 +46,63 @@ hit_sphere:
     fmov    w0, s5
     cbz     w0, hit_sphere_done
 
-    // get t in s0 and set x0 to "true"
+    // get t, try first root (h - sqrt(d))
     fsqrt   s4, s4
-    fsub    s2, s2, s4
-    fdiv    s0, s2, s1
-    mov     x0, #1
+    fsub    s5, s2, s4
+    fdiv    s0, s5, s1
+    fcmge   s5, s0, s30
+    fcmge   s6, s31, s0
+    fmov    w0, s5
+    fmov    w1, s6
+    and     x0, x0, x1
+    cbnz    x0, set_hit
+
+    // try (h + sqrt(d))
+    fadd    s5, s2, s4
+    fdiv    s0, s5, s1
+    fcmge   s5, s0, s30
+    fcmge   s6, s31, s0
+    fmov    w0, s5
+    fmov    w1, s6
+    and     x0, x0, x1
+    cbz     x0, hit_sphere_done
+
+set_hit:
+    str     s0, [x26, #32]      // hit.t
+    fmov    s31, s0             // = new t_max
+    ld1     {v1.4s}, [x22]
+    add     x0, x22, #16
+    ld1     {v2.4s}, [x0]
+    dup     v0.4s, v0.s[0]
+    fmul    v0.4s, v0.4s, v2.4s
+    fadd    v0.4s, v0.4s, v1.4s // ray at t
+    st1     {v0.4s}, [x26]      // = hit.point
+    add     x0, x25, x10
+    ld1     {v1.4s}, [x0]
+    fsub    v0.4s, v0.4s, v1.4s
+    add     x0, x0, #16
+    ldr     s1, [x0]
+    dup     v1.4s, v1.s[0]
+    fdiv    v0.4s, v0.4s, v1.4s // normal = (hit.point - center) / radius
+    movi    d1, #0
+    mov     v0.s[0], v1.s[0]
+
+    // set normal direction
+    fmul    v1.4s, v0.4s, v2.4s
+    faddp   v1.4s, v1.4s, v1.4s
+    faddp   v1.4s, v1.4s, v1.4s
+    fcmge   s1, s1, #0.0
+    fmov    w0, s1
+    cbz     x0, hit_done
+    fneg    v0.4s, v0.4s
+
+hit_done:
+    // store normal
+    add     x0, x26, #16
+    st1     {v0.4s}, [x0]
+
+    // hit_sphere = true
+    mov     x0, #1    
 
 hit_sphere_done:
     ret 

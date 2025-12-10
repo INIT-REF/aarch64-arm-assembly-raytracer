@@ -15,8 +15,7 @@ vp_init:
     ldr     x0, =viewport
 
     // width, height
-    ldr     x1, =viewport_height
-    ldr     s1, [x1]
+    ldr     s1, viewport_height
     str     s1, [x0, #4]
     ldr     x2, =width
     ldr     x3, =height
@@ -55,8 +54,7 @@ vp_init:
     // upper left
     ldr     x1, =cam_center
     ld1     {v0.4s}, [x1]
-    ldr     x1, =focal_length
-    ldr     s2, [x1]
+    ldr     s2, focal_length
     mov     v1.s[2], v2.s[0]
     ldr     s2, [x0]
     ldr     s3, [x0, #44]

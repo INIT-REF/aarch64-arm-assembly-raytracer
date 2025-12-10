@@ -149,29 +149,16 @@ render:
     st1     {v0.4s}, [x0]
 
     // check if we have a hit and jump to skycol if not
-    bl      hit_sphere
+    bl      hit_anything
     cbz     x0, skycol
 
     // if we have a hit, set color according to normal
-    dup     v0.4s, v0.s[0]
-    ld1     {v1.4s}, [x22]
-    add     x0, x22, #16
-    ld1     {v2.4s}, [x0]
-    fmul    v2.4s, v2.4s, v0.4s
-    fadd    v0.4s, v1.4s, v2.4s     // ray at t
-    ldr     x0, =z_1
-    ld1     {v1.4s}, [x0]
-    fadd    v0.4s, v0.4s, v1.4s
-    fmul    v1.4s, v0.4s, v0.4s
-    faddp   v1.4s, v1.4s, v1.4s
-    faddp   v1.4s, v1.4s, v1.4s
-    fsqrt   s1, s1
-    dup     v1.4s, v1.s[0]
-    fdiv    v0.4s, v0.4s, v1.4s     // normal
+    add     x0, x26, #16
+    ld1     {v0.4s}, [x0]
     fmov    v1.4s, #1.0
     fmov    v2.4s, #0.5
     fadd    v0.4s, v0.4s, v1.4s
-    fmul    v0.4s, v0.4s, v2.4s     // final color
+    fmul    v0.4s, v0.4s, v2.4s
     b       clamp
 
 skycol:
