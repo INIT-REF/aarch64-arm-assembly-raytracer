@@ -7,8 +7,7 @@ ppm_header:
 
     // convert width and height to text and write to file
     ldr     x0, =height
-    ldr     x1, =hbuff
-    mov     x5, #10
+    ldr     x1, =hbuff + 11
     mov     x6, #10
 
 height2string:
@@ -16,29 +15,23 @@ height2string:
     msub    x4, x3, x6, x0
     mov     x0, x3
     add     x4, x4, #'0'
-    strb    w4, [x1, x5]
-    sub     x5, x5, #1
+    strb    w4, [x1, #-1]!
     cbnz    x0, height2string
 
     ldr     x0, =width
     mov     x2, #32
-    strb    w2, [x1, x5]
-    mov     x2, #10
-    sub     x5, x5, #1
+    strb    w2, [x1, #-1]!
     
 width2string:
     udiv    x3, x0, x6
     msub    x4, x3, x6, x0
     mov     x0, x3
     add     x4, x4, #'0'
-    strb    w4, [x1, x5]
-    sub     x5, x5, #1
+    strb    w4, [x1, #-1]!
     cbnz    x0, width2string
     
-    add     x5, x5, #1
-    add     x1, x1, x5
-    mov     x2, #12
-    sub     x2, x2, x5
+    ldr     x2, =hbuff + 12
+    sub     x2, x2, x1
     mov     x8, #64
     ldr     x0, fd
     svc     #0
@@ -79,7 +72,7 @@ int2col:
     add     x4, x4, #4
     add     x3, x3, #1
     cmp     x3, width
-    b.lt    int2col
+    blt     int2col
     sub     x4, x4, #1
     mov     x7, #'\n'
     strb    w7, [x1, x4]
