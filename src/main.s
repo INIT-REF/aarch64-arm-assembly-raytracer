@@ -7,7 +7,7 @@
 
     //rendering settings
     samples = 100
-    depth = 5
+    depth = 999
 
     // camera setup
     cam_center:      .float 0.0, 0.0, 0.0, 0.0
