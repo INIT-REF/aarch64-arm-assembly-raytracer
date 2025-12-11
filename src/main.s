@@ -192,10 +192,10 @@ ray_color:
     sub     x27, x27, #1
     ld1     {v0.4s}, [x26]
     st1     {v0.4s}, [x22]  // new ray origin = hit.point
-    //bl      random_on_hemisphere
+    bl      random_on_hemisphere
     add     x0, x22, #16
-    add     x1, x26, #16
-    ld1     {v0.4s}, [x1] 
+    //add     x1, x26, #16
+    //ld1     {v0.4s}, [x1] 
     st1     {v0.4s}, [x0]  // new ray direction = random
     //cbnz    x27, ray_color
     b       ray_color
