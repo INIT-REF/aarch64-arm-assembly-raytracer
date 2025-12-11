@@ -61,6 +61,9 @@
     // for scaling the multisampled color
     sscale: .float 1.0, 1.0, 1.0, 0.0
 
+    // seed for rand48
+    seed: .dword 987654321
+
 .section .bss
     // line buffer for a row of RGB triples
     lbuff: .fill width * 12, 1
@@ -133,7 +136,7 @@ _start:
     ldr     x25, =spheres
     ldr     x26, =hit
     ldr     x27, =lut
-    ldr     x28, =987654321 // initial seed for rand48
+    ldr     x28, =seed // initial seed for rand48
     
     // set ray origin = camera center
     add     x0, x21, #8
@@ -153,18 +156,23 @@ render:
     st1     {v0.4s}, [x23]
 
 multisample:
+    // get random offset vector
+    bl      random_offset
+
     // get ray direction
-    dup     v0.4s, w19
-    dup     v1.4s, w20
-    scvtf   v0.4s, v0.4s
+    dup     v1.4s, w19
+    dup     v2.4s, w20
     scvtf   v1.4s, v1.4s
+    scvtf   v2.4s, v2.4s
     add     x0, x21, #56
-    ld1     {v2.4s}, [x0] 
+    ld1     {v3.4s}, [x0] 
     add     x0, x21, #72
-    ld1     {v3.4s}, [x0]
-    fmul    v0.4s, v0.4s, v2.4s
+    ld1     {v4.4s}, [x0]
+    fadd    v1.4s, v1.4s, v0.4s
+    fadd    v2.4s, v2.4s, v0.4s
     fmul    v1.4s, v1.4s, v3.4s
-    fadd    v0.4s, v0.4s, v1.4s
+    fmul    v2.4s, v2.4s, v4.4s
+    fadd    v0.4s, v1.4s, v2.4s
     add     x0, x21, #104
     ld1     {v1.4s}, [x0]
     fadd    v0.4s, v0.4s, v1.4s     // pixel center
@@ -224,7 +232,6 @@ add_col:
     ld1     {v1.4s}, [x0]
     fmul    v0.4s, v0.4s, v1.4s
     ldp     x24, x27, [sp], #16
-t:
 
 clamp:
     // clamp raycol values to interval 0.0 ... 0.999
