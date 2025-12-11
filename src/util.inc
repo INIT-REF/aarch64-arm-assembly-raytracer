@@ -25,8 +25,8 @@ random_offset:
     ret
 
 
-// generate a random unit vector on the hemisphere of the hit, result in v0
-random_on_hemisphere:
+// generate a random unit vector, result in v0
+random_unit:
     ldr     w3, [x28]
     scvtf   s1, w3
     ldr     x0, =0xffffffff
@@ -60,22 +60,10 @@ random_on_hemisphere:
     faddp   v1.4s, v1.4s, v1.4s
     fsqrt   s1, s1
     fmov    w0, s1
-    cbz     x0, random_on_hemisphere
+    cbz     x0, random_unit
     
     dup     v1.4s, w0
     fdiv    v0.4s, v0.4s, v1.4s
-    mov     v1.16B, v0.16B
-
-    // get dot(roh, hit.normal) and negate unit vector if it's < 0
-    add     x0, x26, #16
-    ld1     {v2.4s}, [x0]
-    fmul    v1.4s, v1.4s, v2.4s
-    faddp   v1.4s, v1.4s, v1.4s
-    faddp   v1.4s, v1.4s, v1.4s
-    fcmge   s1, s1, #0.0
-    fmov    w0, s1
-    cbnz    x0, roh_done
-    fneg    v0.4s, v0.4s
 
 roh_done:
     ret

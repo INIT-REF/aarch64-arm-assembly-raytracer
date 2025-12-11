@@ -7,7 +7,7 @@
 
     //rendering settings
     samples = 100
-    depth = 999
+    depth = 50
 
     // camera setup
     cam_center:      .float 0.0, 0.0, 0.0, 0.0
@@ -192,9 +192,12 @@ ray_color:
     sub     x27, x27, #1
     ld1     {v0.4s}, [x26]
     st1     {v0.4s}, [x22]  // new ray origin = hit.point
-    bl      random_on_hemisphere
+    bl      random_unit
+    add     x0, x26, #16
+    ld1     {v1.4s}, [x0]
+    fadd    v0.4s, v0.4s, v1.4s
     add     x0, x22, #16
-    st1     {v0.4s}, [x0]  // new ray direction = random
+    st1     {v0.4s}, [x0]  // new ray direction = rec.normal + random unit
     cbnz    x27, ray_color
 
     movi    v0.4s, #0
@@ -234,7 +237,7 @@ bounce_scale:
     fmul    v0.4s, v0.4s, v1.4s
     sub     x0, x0, #1
     cbnz    x0, bounce_scale
-    
+
 add_col:
     // accumulate color and repeat until samples are done
     // then scale color and restore x24 and x27
