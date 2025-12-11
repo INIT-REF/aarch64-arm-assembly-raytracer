@@ -152,13 +152,13 @@ render:
 multisample:
     ldr     x27, =depth
 
-    // get random offset vector
-    bl      random_offset
-
     // set ray origin = camera center
     ldr     x0, =cam_center
     ld1     {v0.4s}, [x0]
     st1     {v0.4s}, [x22]
+    
+    // get random offset vector
+    bl      random_offset
 
     // get ray direction
     dup     v1.4s, w19
@@ -196,7 +196,9 @@ ray_color:
     add     x0, x22, #16
     st1     {v0.4s}, [x0]  // new ray direction = random
     cbnz    x27, ray_color
-    b       ray_color
+
+    movi    v0.4s, #0
+    b       add_col 
 
 skycol:
     // set sky color
