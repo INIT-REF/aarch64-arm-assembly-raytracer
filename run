@@ -2,10 +2,9 @@
 
 rm main
 rm image.png
-rm image.ppm
 as ./src/main.s -o main.o
 ld main.o -o main
 rm main.o
 ./main
 magick image.ppm image.png
-#rm image.ppm
+rm image.ppm
