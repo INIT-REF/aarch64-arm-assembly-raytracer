@@ -238,6 +238,8 @@ bounce_scale:
     sub     x0, x0, #1
     cbnz    x0, bounce_scale
 
+//    fsqrt   v0.4s, v0.4s        // gamma correction
+
 add_col:
     // accumulate color and repeat until samples are done
     // then scale color and restore x24 and x27
@@ -256,7 +258,8 @@ add_col:
 clamp:
     // clamp raycol values to interval 0.0 ... 0.999
     // and convert to 0 ... 255 integer
-    fsqrt   v0.4s, v0.4s, v0.4s
+
+    fsqrt   v0.4s, v0.4s        // gamma correction
     ldr     x0, =not_1
     ld1     {v1.4s}, [x0]
     movi    v2.4s, #0
