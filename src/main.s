@@ -5,6 +5,10 @@
     width  = 1024
     height = 576
 
+    //rendering settings
+    samples = 100
+    depth = 50
+
     // camera setup
     cam_center:      .float 0.0, 0.0, 0.0, 0.0
     focal_length:    .float 1.0
@@ -54,6 +58,8 @@
     // buffer for the variable PPM header data (width, height)
     hbuff: .ascii "           \n"
 
+    // for scaling the multisampled color
+    sscale: .float 1.0, 1.0, 1.0, 0.0
 
 .section .bss
     // line buffer for a row of RGB triples
@@ -108,6 +114,15 @@ _start:
     // initialize the viewport
     bl      vp_init
 
+    // set sscale vector
+    ldr     x0, =samples
+    dup     v0.4s, w0
+    scvtf   v0.4s, v0.4s
+    ldr     x0, =sscale
+    ld1     {v1.4s}, [x0]
+    fdiv    v1.4s, v1.4s, v0.4s
+    st1     {v1.4s}, [x0]
+
     // initialize common non-volatile registers
     mov     x19, xzr        // column index
     mov     x20, xzr        // row index
@@ -118,7 +133,8 @@ _start:
     ldr     x25, =spheres
     ldr     x26, =hit
     ldr     x27, =lut
-
+    ldr     x28, =987654321 // initial seed for rand48
+    
     // set ray origin = camera center
     add     x0, x21, #8
     ld1     {v0.4s}, [x0]
@@ -127,6 +143,16 @@ _start:
 
 // main rendering loop
 render:
+    // preserve x24 and x27, replace with samples and depth
+    stp     x24, x27, [sp, #-16]!
+    ldr     x24, =samples
+    ldr     x27, =depth
+
+    // reset raycol to black
+    dup     v0.4s, wzr
+    st1     {v0.4s}, [x23]
+
+multisample:
     // get ray direction
     dup     v0.4s, w19
     dup     v1.4s, w20
@@ -159,7 +185,7 @@ render:
     fmov    v2.4s, #0.5
     fadd    v0.4s, v0.4s, v1.4s
     fmul    v0.4s, v0.4s, v2.4s
-    b       clamp
+    b       add_col
 
 skycol:
     // set sky color
@@ -184,6 +210,21 @@ skycol:
     fmul    v1.4s, v1.4s, v2.4s
     fadd    v0.4s, v0.4s, v1.4s
     
+add_col:
+    // accumulate color and repeat until samples are done
+    // then scale color and restore x24 and x27
+    ld1     {v1.4s}, [x23]
+    fadd    v1.4s, v1.4s, v0.4s
+    st1     {v1.4s}, [x23]
+    sub     x24, x24, #1
+    cbnz    x24, multisample
+
+    ld1     {v0.4s}, [x23]
+    ldr     x0, =sscale
+    ld1     {v1.4s}, [x0]
+    fmul    v0.4s, v0.4s, v1.4s
+    ldp     x24, x27, [sp], #16
+t:
 
 clamp:
     // clamp raycol values to interval 0.0 ... 0.999
@@ -224,8 +265,8 @@ clamp:
     mov     x8, #64
     svc     #0
 
-    mov     x19, xzr
     ldr     x24, =lbuff
+    mov     x19, xzr
     add     x20, x20, #1
     cmp     x20, height
     blt     render
@@ -243,3 +284,4 @@ exit:
 .include "./src/ppm.inc"
 .include "./src/init.inc"
 .include "./src/shapes.inc"
+.include "./src/math.inc"
