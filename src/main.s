@@ -138,26 +138,27 @@ _start:
     ldr     x27, =lut
     ldr     x28, =seed // initial seed for rand48
     
-    // set ray origin = camera center
-    add     x0, x21, #8
-    ld1     {v0.4s}, [x0]
-    st1     {v0.4s}, [x22]
-
 
 // main rendering loop
 render:
     // preserve x24 and x27, replace with samples and depth
     stp     x24, x27, [sp, #-16]!
     ldr     x24, =samples
-    ldr     x27, =depth
-
+    
     // reset raycol to black
     dup     v0.4s, wzr
     st1     {v0.4s}, [x23]
 
 multisample:
+    ldr     x27, =depth
+
     // get random offset vector
     bl      random_offset
+
+    // set ray origin = camera center
+    ldr     x0, =cam_center
+    ld1     {v0.4s}, [x0]
+    st1     {v0.4s}, [x22]
 
     // get ray direction
     dup     v1.4s, w19
@@ -182,18 +183,22 @@ multisample:
     add     x0, x22, #16
     st1     {v0.4s}, [x0]
 
+ray_color:
     // check if we have a hit and jump to skycol if not
     bl      hit_anything
     cbz     x0, skycol
 
-    // if we have a hit, set color according to normal
-    add     x0, x26, #16
-    ld1     {v0.4s}, [x0]
-    fmov    v1.4s, #1.0
-    fmov    v2.4s, #0.5
-    fadd    v0.4s, v0.4s, v1.4s
-    fmul    v0.4s, v0.4s, v2.4s
-    b       add_col
+    // if we have a hit, set new ray and test again with depth -= 1
+    sub     x27, x27, #1
+    ld1     {v0.4s}, [x26]
+    st1     {v0.4s}, [x22]  // new ray origin = hit.point
+    //bl      random_on_hemisphere
+    add     x0, x22, #16
+    add     x1, x26, #16
+    ld1     {v0.4s}, [x1] 
+    st1     {v0.4s}, [x0]  // new ray direction = random
+    //cbnz    x27, ray_color
+    b       ray_color
 
 skycol:
     // set sky color
@@ -217,6 +222,18 @@ skycol:
     ld1     {v2.4s}, [x0]
     fmul    v1.4s, v1.4s, v2.4s
     fadd    v0.4s, v0.4s, v1.4s
+
+    // scale according to bounces
+    ldr     x0, =depth
+    sub     x0, x0, x27
+    cbz     x0, add_col
+
+    fmov    v1.4s, #0.5
+
+bounce_scale:
+    fmul    v0.4s, v0.4s, v1.4s
+    sub     x0, x0, #1
+    cbnz    x0, bounce_scale
     
 add_col:
     // accumulate color and repeat until samples are done
