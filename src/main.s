@@ -267,7 +267,7 @@ clamp:
     // clamp raycol values to interval 0.0 ... 0.999
     // and convert to 0 ... 255 integer
 
-    fsqrt   v0.4s, v0.4s        // gamma correction
+    //fsqrt   v0.4s, v0.4s        // gamma correction
     ldr     x0, =not_1
     ld1     {v1.4s}, [x0]
     movi    v2.4s, #0
