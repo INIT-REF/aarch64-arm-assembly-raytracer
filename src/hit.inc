@@ -100,13 +100,20 @@ hit_done:
     add     x0, x26, #16
     st1     {v0.4s}, [x0]
 
+    // set color
+    add     x0, x25, x10
+    add     x0, x0, #24
+    ld1     {v0.4s}, [x0]
+    add     x0, x26, #40
+    st1     {v0.4s}, [x0]
+
     // hit_sphere = true
     mov     x11, #1    
 
 hit_sphere_done:
     //  try next sphere
-    add     x10, x10, #20
-    cmp     x10, 20
+    add     x10, x10, #44
+    cmp     x10, #44
     ble     hit_sphere
 
     // when finished, set flag in x0

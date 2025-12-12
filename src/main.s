@@ -86,15 +86,18 @@
     ray: .fill 8, 4
 
     // memory for the hit record
-    hit: .fill 10, 4
+    hit: .fill 15, 4
 
     // hit record indices
     //  0 -> point
     // 16 -> normal
     // 32 -> t
+    // 36 -> material type
+    // 40 -> material color
+    // 56 -> material fuzz
     
-    // memory for the ray color
-    raycol: .fill 4, 4
+    // memory for the ray color and attenuation
+    raycol: .fill 8, 4
 
 .section .text
 
@@ -145,9 +148,12 @@ render:
     stp     x24, x27, [sp, #-16]!
     ldr     x24, =samples
     
-    // reset raycol to black
+    // reset raycol to black and attenuation to white
     dup     v0.4s, wzr
     st1     {v0.4s}, [x23]
+    fmov    v0.4s, #1.0
+    add     x0, x23, #16
+    st1     {v0.4s}, [x0]
 
 multisample:
     ldr     x27, =depth
@@ -183,13 +189,14 @@ multisample:
     add     x0, x22, #16
     st1     {v0.4s}, [x0]
 
-ray_color:
     // check if we have a hit and jump to skycol if not
     bl      hit_anything
     cbz     x0, skycol
 
+scatter: 
     // if we have a hit, set new ray and test again with depth -= 1
     sub     x27, x27, #1
+    cbz     x27, black
     ld1     {v0.4s}, [x26]
     st1     {v0.4s}, [x22]  // new ray origin = hit.point
     bl      random_unit
@@ -198,8 +205,23 @@ ray_color:
     fadd    v0.4s, v0.4s, v1.4s
     add     x0, x22, #16
     st1     {v0.4s}, [x0]  // new ray direction = rec.normal + random unit
-    cbnz    x27, ray_color
+    add     x0, x26, #40
+    ld1     {v0.4s}, [x0]
+    add     x0, x23, #16
+    ld1     {v1.4s}, [x0]
+    fmov    v2.4s, #1.0
+    fmul    v0.4s, v0.4s, v1.4s
+    fmul    v0.4s, v0.4s, v2.4s
+    st1     {v0.4s}, [x0]   // attenuation *= hit.color * 0.5
+    bl      hit_anything
+    cbnz    x0, scatter
+    
+    // no hit anymore -> load final color in v0 and add
+    add     x0, x23, #16
+    ld1     {v0.4s}, [x0]
+    b       add_col
 
+black:
     movi    v0.4s, #0
     b       add_col 
 
@@ -225,20 +247,6 @@ skycol:
     ld1     {v2.4s}, [x0]
     fmul    v1.4s, v1.4s, v2.4s
     fadd    v0.4s, v0.4s, v1.4s
-
-    // scale according to bounces
-    ldr     x0, =depth
-    sub     x0, x0, x27
-    cbz     x0, add_col
-
-    fmov    v1.4s, #0.5
-
-bounce_scale:
-    fmul    v0.4s, v0.4s, v1.4s
-    sub     x0, x0, #1
-    cbnz    x0, bounce_scale
-
-//    fsqrt   v0.4s, v0.4s        // gamma correction
 
 add_col:
     // accumulate color and repeat until samples are done
@@ -314,5 +322,5 @@ exit:
 
 .include "./src/ppm.inc"
 .include "./src/init.inc"
-.include "./src/shapes.inc"
+.include "./src/hit.inc"
 .include "./src/util.inc"
