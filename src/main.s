@@ -2,8 +2,8 @@
 
 .section .rodata
     // output image dimensions
-    width  = 1024
-    height = 576
+    width  = 400
+    height = 225
 
     //rendering settings
     samples = 100
@@ -177,7 +177,7 @@ render:
 multisample:
     ldr     x27, =depth
 
-    // set ray origin = camera center
+    // set ray.origin = camera_center
     ldr     q0, [x21, #8]
     str     q0, [x22]
     
@@ -199,23 +199,44 @@ multisample:
     ldr     q1, [x21, #104]
     fadd    v0.4s, v0.4s, v1.4s     // pixel center
     ldr     q1, [x21, #8]
-    fsub    v0.4s, v0.4s, v1.4s     // ray direction (pixel center - camera center)
+    fsub    v0.4s, v0.4s, v1.4s     // ray.direction (pixel_center - camera_center)
     str     q0, [x22, #16]
 
+    // init attenuation
+    fmov    v0.4s, #1.0
+    str     q0, [x23, #16]
+    
     // check if we have a hit and jump to skycol if not
     bl      hit_anything
     cbz     x0, skycolor
-    
-    // init attenuation
-    fmov    v0.4s, #2.0
-    str     q0, [x23, #16]
 
 scatter: 
     // if we have a hit, set new ray and test again with depth -= 1
     sub     x27, x27, #1
     cbz     x27, black
     ldr     q1, [x26]
-    str     q1, [x22]   // new ray origin = hit.point
+    str     q1, [x22]   // new ray.origin = hit.point
+
+    // get the material type
+    ldr     w0, [x26, 36]
+    cbz     x0, diffuse     // if type = 0 continue at diffuse
+
+metal:
+    // get reflected vector
+    ldr     q0, [x22, #16]  // ray.direction
+    ldr     q1, [x26, #16]  // hit.normal
+    fmul    v2.4s, v0.4s, v1.4s
+    faddp   v2.4s, v2.4s, v2.4s
+    faddp   v2.4s, v2.4s, v2.4s
+    dup     v2.4s, v2.s[0]
+    fmov    v3.4s, #2.0
+    fmul    v2.4s, v2.4s, v3.4s
+    fmul    v1.4s, v1.4s, v2.4s
+    fsub    v0.4s, v0.4s, v1.4s
+    b       not_near_zero
+
+diffuse:
+    // get random reflected vector
     bl      random_unit
     ldr     q1, [x26, #16]
     fadd    v0.4s, v0.4s, v1.4s
@@ -233,23 +254,21 @@ scatter:
     ldr     q0, [x26, #16]
 
 not_near_zero:
-    str     q0, [x22, #16]  // new ray direction
+    str     q0, [x22, #16]  // new ray.direction
     ldr     q0, [x26, #40]
     ldr     q1, [x23, #16]
-    fmov    v2.4s, #0.5
     fmul    v0.4s, v0.4s, v1.4s
-    fmul    v0.4s, v0.4s, v2.4s
-    str     q0, [x23, #16]   // attenuation *= hit.color * 0.5
+    str     q0, [x23, #16]   // attenuation *= hit.color * factor
     bl      hit_anything
     cbnz    x0, scatter
     
-    // no hit anymore -> load final color in v0 and add
+    // no hit anymore -> load final color in v0
     ldr     q0, [x23, #16]
-    b       add_col
+    b       skycolor
 
 black:
     movi    v0.4s, #0
-    b       add_col 
+    str     q0, [x23, #16]
 
 skycolor:
     // set sky color
@@ -272,6 +291,8 @@ skycolor:
     ldr     q2, [x0]
     fmul    v1.4s, v1.4s, v2.4s
     fadd    v0.4s, v0.4s, v1.4s
+    ldr     q1, [x23, #16]
+    fmul    v0.4s, v0.4s, v1.4s
 
 add_col:
     // accumulate color and repeat until samples are done
