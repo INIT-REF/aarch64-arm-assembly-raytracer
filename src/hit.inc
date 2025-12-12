@@ -112,8 +112,11 @@ hit_done:
 
 hit_sphere_done:
     //  try next sphere
-    add     x10, x10, #44
-    cmp     x10, #44
+    mov     x1, #44
+    add     x10, x10, x1
+    ldr     x0, =obj_count - 1
+    mul     x0, x0, x1
+    cmp     x10, x0
     ble     hit_sphere
 
     // when finished, set flag in x0

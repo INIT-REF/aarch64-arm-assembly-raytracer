@@ -28,6 +28,9 @@
     t_min: .float 0.001
     t_max: .dword 0x7f800000
 
+    // for near zero
+    tiny: .float 0.0000003
+
     // ppm-file related
     file: .asciz "image.ppm"
     P3:   .ascii "P3\n"
@@ -209,8 +212,8 @@ multisample:
     bl      hit_anything
     cbz     x0, skycolor
     
-    // init attenuation to white
-    fmov    v0.4s, #1.0
+    // init attenuation
+    fmov    v0.4s, #2.0
     add     x0, x23, #16
     st1     {v0.4s}, [x0]
 
@@ -224,6 +227,20 @@ scatter:
     add     x0, x26, #16
     ld1     {v1.4s}, [x0]
     fadd    v0.4s, v0.4s, v1.4s
+
+    // catch near zero condition
+    fabs    v1.4s, v0.4s
+    faddp   v1.4s, v1.4s, v1.4s
+    faddp   v1.4s, v1.4s, v1.4s
+    ldr     s2, =tiny
+    fcmge   s1, s1, s2
+    fmov    w1, s1
+    cbnz    x1, not_near_zero
+
+    // set scatter direction to hit.normal if near zero
+    ld1     {v0.4s}, [x0]
+
+not_near_zero:
     add     x0, x22, #16
     st1     {v0.4s}, [x0]  // new ray direction = rec.normal + random unit
     add     x0, x26, #40
