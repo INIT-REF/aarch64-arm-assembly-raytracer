@@ -236,7 +236,7 @@ metal:
 
     // if fuzz > 0 randomize reflection depending on fuzz
     ldr     w0, [x26, #56]
-    cbz     x0, not_near_zero
+    cbz     x0, not_near_zero   // no fuzz, no todo
     mov     v1.16b, v0.16b
     fmul    v1.4s, v1.4s, v1.4s
     faddp   v1.4s, v1.4s, v1.4s
@@ -249,8 +249,8 @@ metal:
     ldr     q1, [sp], #16       // and get it back in q1
     ldr     w0, [x26, #56]
     dup     v2.4s, w0
-    fmul    v0.4s, v0.4s, v2.4s
-    fadd    v0.4s, v0.4s, v1.4s
+    fmul    v0.4s, v0.4s, v2.4s // fuzz * random_unit
+    fadd    v0.4s, v0.4s, v1.4s // + unit(reflected) = final result
     b       not_near_zero
 
 diffuse:
