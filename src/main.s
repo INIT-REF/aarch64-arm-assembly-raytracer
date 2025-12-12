@@ -149,14 +149,6 @@ _start:
 
 // main rendering loop
 render:
-    // preserve x24 and x27, replace with samples and depth
-    stp     x24, x27, [sp, #-16]!
-    ldr     x24, =samples
-    
-    // reset raycol to black
-    dup     v0.4s, wzr
-    st1     {v0.4s}, [x23]
-    
     // print rendering progress on stdout
     mov     x1, #100
     mul     x0, x20, x1
@@ -171,6 +163,14 @@ render:
     mov     x8, #64
     svc     #0
 
+    // reset raycol to black
+    dup     v0.4s, wzr
+    st1     {v0.4s}, [x23]
+    
+    // preserve x24 and x27, replace with samples and depth
+    stp     x24, x27, [sp, #-16]!
+    ldr     x24, =samples
+    
 multisample:
     ldr     x27, =depth
 
