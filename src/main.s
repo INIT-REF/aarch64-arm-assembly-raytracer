@@ -211,7 +211,7 @@ multisample:
     cbz     x0, skycolor
 
 scatter: 
-    // if we have a hit, get scattered ray and test again with depth -= 1
+    // if we have a hit, set depth -= 1
     sub     x27, x27, #1
     cbz     x27, black
     ldr     q1, [x26]
@@ -233,6 +233,24 @@ metal:
     fmul    v2.4s, v2.4s, v3.4s
     fmul    v1.4s, v1.4s, v2.4s
     fsub    v0.4s, v0.4s, v1.4s
+
+    // if fuzz > 0 randomize reflection depending on fuzz
+    ldr     w0, [x26, #56]
+    cbz     x0, not_near_zero
+    mov     v1.16b, v0.16b
+    fmul    v1.4s, v1.4s, v1.4s
+    faddp   v1.4s, v1.4s, v1.4s
+    faddp   v1.4s, v1.4s, v1.4s
+    fsqrt   s1, s1
+    dup     v1.4s, v1.s[0]
+    fdiv    v1.4s, v0.4s, v1.4s // unit(reflected)
+    str     q1, [sp, #-16]!     // preserve on the stack
+    bl      random_unit
+    ldr     q1, [sp], #16       // and get it back in q1
+    ldr     w0, [x26, #56]
+    dup     v2.4s, w0
+    fmul    v0.4s, v0.4s, v2.4s
+    fadd    v0.4s, v0.4s, v1.4s
     b       not_near_zero
 
 diffuse:

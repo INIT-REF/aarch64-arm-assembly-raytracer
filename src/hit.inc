@@ -92,7 +92,7 @@ set_hit:
     fneg    v0.4s, v0.4s
 
 hit_done:
-    // store normal
+    // set normal
     str     q0, [x26, #16]
 
     // set material type
@@ -103,6 +103,10 @@ hit_done:
     // set color
     ldr     q0, [x1, #24]
     str     q0, [x26, #40]
+
+    // set fuzz
+    ldr     w0, [x1, #40]
+    str     w0, [x26, #56]
 
     // hit_sphere = true
     mov     x11, #1    

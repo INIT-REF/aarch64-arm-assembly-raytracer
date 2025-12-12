@@ -23,7 +23,7 @@
                 .float 0.5
                 .word 1
                 .float 0.8, 0.8, 0.8, 0.0
-                .float 0.0
+                .float 0.3
 
                 .float 1.0, 0.0, -1.0, 0.0
                 .float 0.5

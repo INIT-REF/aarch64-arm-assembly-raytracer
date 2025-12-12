@@ -61,9 +61,6 @@ random_unit:
     fsqrt   s1, s1
     fmov    w0, s1
     cbz     x0, random_unit
-    
     dup     v1.4s, w0
     fdiv    v0.4s, v0.4s, v1.4s
-
-roh_done:
     ret
