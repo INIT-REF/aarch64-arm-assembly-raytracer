@@ -83,15 +83,20 @@ set_hit:
     fdiv    v0.4s, v0.4s, v1.4s // normal = (hit.point - center) / radius
 
     // set normal direction
+    mov     x0, #1              // front face flag
     fmul    v1.4s, v0.4s, v2.4s
     faddp   v1.4s, v1.4s, v1.4s
     faddp   v1.4s, v1.4s, v1.4s
     fcmge   s1, s1, #0.0
-    fmov    w0, s1
-    cbz     x0, hit_done
+    fmov    w1, s1
+    cbz     x1, hit_done
     fneg    v0.4s, v0.4s
+    mov     x0, xzr
 
 hit_done:
+    // set front face
+    str     w0, [x26, #60]
+
     // set normal
     str     q0, [x26, #16]
 

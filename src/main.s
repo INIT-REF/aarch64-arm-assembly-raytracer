@@ -94,7 +94,7 @@
     ray: .fill 8, 4
 
     // memory for the hit record
-    hit: .fill 15, 4
+    hit: .fill 16, 4
 
     // hit record indices
     //  0 -> point
@@ -103,6 +103,7 @@
     // 36 -> material type
     // 40 -> material color
     // 56 -> material fuzz
+    // 60 -> front face
     
     // memory for the ray color and attenuation
     raycol: .fill 8, 4
@@ -220,6 +221,67 @@ scatter:
     // get the material type
     ldr     w0, [x26, 36]
     cbz     x0, diffuse     // if type = 0 continue at diffuse
+    sub     x0, x0, #1
+    cbz     x0, metal       // if type = 1 continue at metal
+
+glass:
+    fmov    s0, #1.5
+    fmov    s1, #1.0
+    ldr     w0, [x26, #60]  // get front face flag
+    cbnz    x0, front_face  // and use 1.5 as the refraction index
+    fdiv    s10, s1, s0      // else use 1 / 1.5
+
+front_face:
+    // get unit(ray.direction)
+    ldr     q0, [x22, #16]
+    fmul    v1.4s, v0.4s, v0.4s
+    faddp   v1.4s, v1.4s, v1.4s
+    faddp   v1.4s, v1.4s, v1.4s
+    fsqrt   s1, s1
+    dup     v1.4s, v1.s[0]
+    fdiv    v0.4s, v0.4s, v1.4s
+
+    // get cos(theta)
+    fneg    v1.4s, v0.4s
+    ldr     q2, [x26, #16]
+    fmul    v1.4s, v1.4s, v2.4s
+    faddp   v1.4s, v1.4s, v1.4s
+    faddp   v1.4s, v1.4s, v1.4s
+    fmov    s2, #1.0
+    fmin    s1, s1, s2
+    
+    // get sin(theta)
+    fmul    s3, s1, s1
+    fsub    s1, s2, s3
+
+    // check if refraction index * sin(theta) > 1
+    fmul    s3, s10, s3
+    fcmgt   s3, s3, s2
+    fmov    w0, s3
+    cbnz    x0, metal   // if > 1 the ray is reflected
+
+    // else we calculate the refraction
+    // get r_out_perp
+    ldr     q2, [x26, #16]
+    dup     v1.4s, v1.s[0]
+    fmul    v3.4s, v2.4s, v1.4s // hit.normal * cos(theta)
+    fadd    v0.4s, v0.4s, v3.4s // + unit(ray_direction)
+    dup     v3.4s, v10.s[0]
+    fmul    v0.4s, v0.4s, v3.4s // * refraction index
+
+    // get r_out_parallel
+    fmul    v3.4s, v0.4s, v0.4s
+    faddp   v3.4s, v3.4s, v3.4s
+    faddp   v3.4s, v3.4s, v3.4s
+    dup     v3.4s, v3.s[0]
+    fmov    v1.4s, #1.0
+    fsub    v1.4s, v1.4s, v3.4s
+    fabs    v1.4s, v1.4s
+    fsqrt   v1.4s, v1.4s
+    fneg    v1.4s, v1.4s
+    fmul    v1.4s, v1.4s, v2.4s
+    fadd    v0.4s, v1.4s, v0.4s  
+    b       scatter_done 
 
 metal:
     // get reflected vector
@@ -236,7 +298,7 @@ metal:
 
     // if fuzz > 0 randomize reflection depending on fuzz
     ldr     w0, [x26, #56]
-    cbz     x0, not_near_zero   // no fuzz, no todo
+    cbz     x0, scatter_done    // no fuzz, no todo
     mov     v1.16b, v0.16b
     fmul    v1.4s, v1.4s, v1.4s
     faddp   v1.4s, v1.4s, v1.4s
@@ -251,7 +313,7 @@ metal:
     dup     v2.4s, w0
     fmul    v0.4s, v0.4s, v2.4s // fuzz * random_unit
     fadd    v0.4s, v0.4s, v1.4s // + unit(reflected) = final result
-    b       not_near_zero
+    b       scatter_done
 
 diffuse:
     // get random reflected vector
@@ -266,12 +328,12 @@ diffuse:
     ldr     s2, =tiny
     fcmge   s1, s1, s2
     fmov    w1, s1
-    cbnz    x1, not_near_zero
+    cbnz    x1, scatter_done
 
     // set scatter direction to hit.normal if near zero
     ldr     q0, [x26, #16]
 
-not_near_zero:
+scatter_done:
     str     q0, [x22, #16]  // new ray.direction
     ldr     q0, [x26, #40]
     ldr     q1, [x23, #16]
