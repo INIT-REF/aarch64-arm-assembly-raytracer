@@ -10,14 +10,12 @@ hit_anything:
 // ray vs sphere
 hit_sphere:
     // get oc in v0
-    ld1     {v0.4s}, [x22]
-    add     x0, x25, x10
-    ld1     {v1.4s}, [x0]
+    ldr     q0, [x22]
+    ldr     q1, [x25, x10]
     fsub    v0.4s, v1.4s, v0.4s     
 
     // get a in s1
-    add     x1, x22, #16
-    ld1     {v1.4s}, [x1]
+    ldr     q1, [x22, #16]
     mov     v2.16B, v1.16B
     fmul    v1.4s, v1.4s, v1.4s
     faddp   v1.4s, v1.4s, v1.4s 
@@ -71,15 +69,13 @@ hit_sphere:
 set_hit:
     str     s0, [x26, #32]      // hit.t
     fmov    s31, s0             // = new t_max
-    ld1     {v1.4s}, [x22]
-    add     x0, x22, #16
-    ld1     {v2.4s}, [x0]
+    ldr     q1, [x22]
+    ldr     q2, [x22, #16]
     dup     v0.4s, v0.s[0]
     fmul    v0.4s, v0.4s, v2.4s
     fadd    v0.4s, v0.4s, v1.4s // ray at t
-    st1     {v0.4s}, [x26]      // = hit.point
-    add     x0, x25, x10
-    ld1     {v1.4s}, [x0]
+    str     q0, [x26]           // = hit.point
+    ldr     q1, [x25, x10]
     fsub    v0.4s, v0.4s, v1.4s
     add     x0, x25, x10
     ldr     s1, [x0, #16]
@@ -97,8 +93,7 @@ set_hit:
 
 hit_done:
     // store normal
-    add     x0, x26, #16
-    st1     {v0.4s}, [x0]
+    str     q0, [x26, #16]
 
     // set material type
     add     x1, x25, x10
@@ -106,9 +101,8 @@ hit_done:
     str     w0, [x26, #36]
 
     // set color
-    add     x2, x25, x10
-    ldp     x0, x1, [x2, #24]
-    stp     x0, x1, [x26, #40]
+    ldr     q0, [x1, #24]
+    str     q0, [x26, #40]
 
     // hit_sphere = true
     mov     x11, #1    

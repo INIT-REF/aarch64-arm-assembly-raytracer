@@ -28,8 +28,8 @@ vp_init:
 
     // cam center
     ldr     x1, =cam_center
-    ldp     x2, x3, [x1]
-    stp     x2, x3, [x0, #8]
+    ldr     q0, [x1]
+    str     q0, [x0, #8]
 
     // viewport u
     ldr     s1, [x0]
@@ -61,20 +61,16 @@ vp_init:
     mov     v1.s[0], v2.s[0]
     mov     v1.s[1], v3.s[0]
     ldr     x1, =cam_center
-    ld1     {v0.4s}, [x1]
+    ldr     q0, [x1]
     fsub    v0.4s, v0.4s, v1.4s
-    add     x1, x0, #88
-    st1     {v0.4s}, [x1]
+    str     q0, [x0, #88]
 
     // pixel00_loc
-    add     x1, x0, #56
-    ld1     {v1.4s}, [x1]
-    add     x1, x0, #72
-    ld1     {v2.4s}, [x1]
+    ldr     q1, [x0, #56]
+    ldr     q2, [x0, #72]
     fmov    v3.4s, #0.5
     fadd    v1.4s, v1.4s, v2.4s
     fmul    v1.4s, v1.4s, v3.4s
     fadd    v0.4s, v0.4s, v1.4s
-    add     x1, x0, #104
-    st1     {v0.4s}, [x1]
+    str     q0, [x0, #104]
     ret
