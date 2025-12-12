@@ -148,12 +148,9 @@ render:
     stp     x24, x27, [sp, #-16]!
     ldr     x24, =samples
     
-    // reset raycol to black and attenuation to white
+    // reset raycol to black
     dup     v0.4s, wzr
     st1     {v0.4s}, [x23]
-    fmov    v0.4s, #1.0
-    add     x0, x23, #16
-    st1     {v0.4s}, [x0]
 
 multisample:
     ldr     x27, =depth
@@ -192,6 +189,11 @@ multisample:
     // check if we have a hit and jump to skycol if not
     bl      hit_anything
     cbz     x0, skycol
+    
+    // init attenuation to white
+    fmov    v0.4s, #1.0
+    add     x0, x23, #16
+    st1     {v0.4s}, [x0]
 
 scatter: 
     // if we have a hit, set new ray and test again with depth -= 1
@@ -209,7 +211,7 @@ scatter:
     ld1     {v0.4s}, [x0]
     add     x0, x23, #16
     ld1     {v1.4s}, [x0]
-    fmov    v2.4s, #1.0
+    fmov    v2.4s, #0.5
     fmul    v0.4s, v0.4s, v1.4s
     fmul    v0.4s, v0.4s, v2.4s
     st1     {v0.4s}, [x0]   // attenuation *= hit.color * 0.5
@@ -267,7 +269,7 @@ clamp:
     // clamp raycol values to interval 0.0 ... 0.999
     // and convert to 0 ... 255 integer
 
-    //fsqrt   v0.4s, v0.4s        // gamma correction
+    fsqrt   v0.4s, v0.4s        // gamma correction
     ldr     x0, =not_1
     ld1     {v1.4s}, [x0]
     movi    v2.4s, #0

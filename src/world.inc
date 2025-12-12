@@ -5,7 +5,7 @@
 // 1 -> metal
 // 2 -> glass
 
-    spheres:    .float 0.0, 0.0, -1.0, 0.0  // center
+    spheres:    .float 0.0, 0.0, -1.2, 0.0  // center
                 .float 0.5                  // radius
                 .word 0                     // material kind
                 .float 0.1, 0.2, 0.5, 0.0   // material color
