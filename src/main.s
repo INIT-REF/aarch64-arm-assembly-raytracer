@@ -133,9 +133,9 @@ _start:
     dup     v0.4s, w0
     scvtf   v0.4s, v0.4s
     ldr     x0, =sscale
-    ld1     {v1.4s}, [x0]
+    ldr     q1, [x0]
     fdiv    v1.4s, v1.4s, v0.4s
-    st1     {v1.4s}, [x0]
+    str     q1, [x0]
 
     // initialize common non-volatile registers
     mov     x19, xzr        // column index
@@ -168,7 +168,7 @@ render:
 
     // reset raycol to black
     dup     v0.4s, wzr
-    st1     {v0.4s}, [x23]
+    str     q0, [x23]
     
     // preserve x24 and x27, replace with samples and depth
     stp     x24, x27, [sp, #-16]!
@@ -178,9 +178,8 @@ multisample:
     ldr     x27, =depth
 
     // set ray origin = camera center
-    ldr     x0, =cam_center
-    ld1     {v0.4s}, [x0]
-    st1     {v0.4s}, [x22]
+    ldr     q0, [x21, #8]
+    str     q0, [x22]
     
     // get random offset vector
     bl      random_offset
@@ -190,23 +189,18 @@ multisample:
     dup     v2.4s, w20
     scvtf   v1.4s, v1.4s
     scvtf   v2.4s, v2.4s
-    add     x0, x21, #56
-    ld1     {v3.4s}, [x0] 
-    add     x0, x21, #72
-    ld1     {v4.4s}, [x0]
+    ldr     q3, [x21, #56]
+    ldr     q4, [x21, #72]
     fadd    v1.4s, v1.4s, v0.4s
     fadd    v2.4s, v2.4s, v0.4s
     fmul    v1.4s, v1.4s, v3.4s
     fmul    v2.4s, v2.4s, v4.4s
     fadd    v0.4s, v1.4s, v2.4s
-    add     x0, x21, #104
-    ld1     {v1.4s}, [x0]
+    ldr     q1, [x21, #104]
     fadd    v0.4s, v0.4s, v1.4s     // pixel center
-    add     x0, x21, #8
-    ld1     {v1.4s}, [x0]
+    ldr     q1, [x21, #8]
     fsub    v0.4s, v0.4s, v1.4s     // ray direction (pixel center - camera center)
-    add     x0, x22, #16
-    st1     {v0.4s}, [x0]
+    str     q0, [x22, #16]
 
     // check if we have a hit and jump to skycol if not
     bl      hit_anything
@@ -214,18 +208,16 @@ multisample:
     
     // init attenuation
     fmov    v0.4s, #2.0
-    add     x0, x23, #16
-    st1     {v0.4s}, [x0]
+    str     q0, [x23, #16]
 
 scatter: 
     // if we have a hit, set new ray and test again with depth -= 1
     sub     x27, x27, #1
     cbz     x27, black
-    ld1     {v0.4s}, [x26]
-    st1     {v0.4s}, [x22]  // new ray origin = hit.point
+    ldr     q1, [x26]
+    str     q1, [x22]   // new ray origin = hit.point
     bl      random_unit
-    add     x0, x26, #16
-    ld1     {v1.4s}, [x0]
+    ldr     q1, [x26, #16]
     fadd    v0.4s, v0.4s, v1.4s
 
     // catch near zero condition
@@ -238,25 +230,21 @@ scatter:
     cbnz    x1, not_near_zero
 
     // set scatter direction to hit.normal if near zero
-    ld1     {v0.4s}, [x0]
+    ldr     q0, [x26, #16]
 
 not_near_zero:
-    add     x0, x22, #16
-    st1     {v0.4s}, [x0]  // new ray direction = rec.normal + random unit
-    add     x0, x26, #40
-    ld1     {v0.4s}, [x0]
-    add     x0, x23, #16
-    ld1     {v1.4s}, [x0]
+    str     q0, [x22, #16]  // new ray direction
+    ldr     q0, [x26, #40]
+    ldr     q1, [x23, #16]
     fmov    v2.4s, #0.5
     fmul    v0.4s, v0.4s, v1.4s
     fmul    v0.4s, v0.4s, v2.4s
-    st1     {v0.4s}, [x0]   // attenuation *= hit.color * 0.5
+    str     q0, [x23, #16]   // attenuation *= hit.color * 0.5
     bl      hit_anything
     cbnz    x0, scatter
     
     // no hit anymore -> load final color in v0 and add
-    add     x0, x23, #16
-    ld1     {v0.4s}, [x0]
+    ldr     q0, [x23, #16]
     b       add_col
 
 black:
@@ -265,8 +253,7 @@ black:
 
 skycolor:
     // set sky color
-    add     x0, x22, #16
-    ld1     {v0.4s}, [x0]
+    ldr     q0, [x22, #16]
     fmul    v1.4s, v0.4s, v0.4s
     faddp   v1.4s, v1.4s, v1.4s
     faddp   v1.4s, v1.4s, v1.4s
@@ -282,22 +269,22 @@ skycolor:
     fmov    v0.4s, #1.0
     fsub    v0.4s, v0.4s, v1.4s // 1 - a
     ldr     x0, =sky
-    ld1     {v2.4s}, [x0]
+    ldr     q2, [x0]
     fmul    v1.4s, v1.4s, v2.4s
     fadd    v0.4s, v0.4s, v1.4s
 
 add_col:
     // accumulate color and repeat until samples are done
     // then scale color and restore x24 and x27
-    ld1     {v1.4s}, [x23]
+    ldr     q1, [x23]
     fadd    v1.4s, v1.4s, v0.4s
-    st1     {v1.4s}, [x23]
+    str     q1, [x23]
     sub     x24, x24, #1
     cbnz    x24, multisample
 
-    ld1     {v0.4s}, [x23]
+    ldr     q0, [x23]
     ldr     x0, =sscale
-    ld1     {v1.4s}, [x0]
+    ldr     q1, [x0]
     fmul    v0.4s, v0.4s, v1.4s
     ldp     x24, x27, [sp], #16
 
@@ -306,12 +293,12 @@ clamp:
     // and convert to 0 ... 255 integer
     fsqrt   v0.4s, v0.4s        // gamma correction
     ldr     x0, =not_1
-    ld1     {v1.4s}, [x0]
+    ldr     q1, [x0]
     movi    v2.4s, #0
     smin    v0.4s, v0.4s, v1.4s
     smax    v0.4s, v0.4s, v2.4s
     ldr     x0, =_256
-    ld1     {v1.4s}, [x0]
+    ldr     q1, [x0]
     fmul    v0.4s, v0.4s, v1.4s
     fcvtzu  v0.4s, v0.4s
     
