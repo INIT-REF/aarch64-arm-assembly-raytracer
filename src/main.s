@@ -34,11 +34,11 @@
     _255: .ascii "255\n"
 
     // LUT for unsigned char to string
-    lut: .ascii "000 001 002 003 004 005 006 007 008 009 010 011 012 013 014 015 016 017 018 019 "
-         .ascii "020 021 022 023 024 025 026 027 028 029 030 031 032 033 034 035 036 037 038 039 "
-         .ascii "040 041 042 043 044 045 046 047 048 049 050 051 052 053 054 055 056 057 058 059 "
-         .ascii "060 061 062 063 064 065 066 067 068 069 070 071 072 073 074 075 076 077 078 079 "
-         .ascii "080 081 082 083 084 085 086 087 088 089 090 091 092 093 094 095 096 097 098 099 "
+    lut: .ascii "  0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19 "
+         .ascii " 20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39 "
+         .ascii " 40  41  42  43  44  45  46  47  48  49  50  51  52  53  54  55  56  57  58  59 "
+         .ascii " 60  61  62  63  64  65  66  67  68  69  70  71  72  73  74  75  76  77  78  79 "
+         .ascii " 80  81  82  83  84  85  86  87  88  89  90  91  92  93  94  95  96  97  98  99 "
          .ascii "100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 "
          .ascii "120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 "
          .ascii "140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 "
@@ -47,6 +47,8 @@
          .ascii "200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 "
          .ascii "220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 "
          .ascii "240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 "
+
+    done: .ascii "Rendering done, result in image.ppm\n"
 
 
 .section .data
@@ -58,6 +60,9 @@
     // buffer for the variable PPM header data (width, height)
     hbuff: .ascii "           \n"
 
+    // buffer for the progress text
+    pbuff: .ascii "Rendering progress:     %\r"
+    
     // for scaling the multisampled color
     sscale: .float 1.0, 1.0, 1.0, 0.0
 
@@ -151,6 +156,20 @@ render:
     // reset raycol to black
     dup     v0.4s, wzr
     st1     {v0.4s}, [x23]
+    
+    // print rendering progress on stdout
+    mov     x1, #100
+    mul     x0, x20, x1
+    ldr     x1, =height
+    udiv    x0, x0, x1
+    ldr     w0, [x27, x0, lsl #2]
+    ldr     x1, =pbuff
+    add     x2, x1, #20
+    str     w0, [x2]
+    mov     x0, #1
+    mov     x2, #26
+    mov     x8, #64
+    svc     #0
 
 multisample:
     ldr     x27, =depth
@@ -188,7 +207,7 @@ multisample:
 
     // check if we have a hit and jump to skycol if not
     bl      hit_anything
-    cbz     x0, skycol
+    cbz     x0, skycolor
     
     // init attenuation to white
     fmov    v0.4s, #1.0
@@ -227,7 +246,7 @@ black:
     movi    v0.4s, #0
     b       add_col 
 
-skycol:
+skycolor:
     // set sky color
     add     x0, x22, #16
     ld1     {v0.4s}, [x0]
@@ -268,7 +287,6 @@ add_col:
 clamp:
     // clamp raycol values to interval 0.0 ... 0.999
     // and convert to 0 ... 255 integer
-
     fsqrt   v0.4s, v0.4s        // gamma correction
     ldr     x0, =not_1
     ld1     {v1.4s}, [x0]
@@ -318,6 +336,13 @@ exit:
     ldr     x0, fd
     mov     x8, #57
     svc     #0
+
+    mov     x0, #1
+    ldr     x1, =done
+    mov     x2, #36
+    mov     x8, #64
+    svc     #0
+
     mov     x0, #0
     mov     w8, #93
     svc     #0
