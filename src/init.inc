@@ -27,10 +27,9 @@ vp_init:
     str     s1, [x0]
 
     // cam center
-    ldr     x2, =cam_center
-    ld1     {v0.4s}, [x2]
-    add     x1, x0, #8
-    st1     {v0.4s}, [x1]
+    ldr     x1, =cam_center
+    ldp     x2, x3, [x1]
+    stp     x2, x3, [x0, #8]
 
     // viewport u
     ldr     s1, [x0]
@@ -52,8 +51,6 @@ vp_init:
     str     s1, [x0, #76]
 
     // upper left
-    ldr     x1, =cam_center
-    ld1     {v0.4s}, [x1]
     ldr     s2, focal_length
     mov     v1.s[2], v2.s[0]
     ldr     s2, [x0]
@@ -63,6 +60,8 @@ vp_init:
     fmul    s3, s3, s4
     mov     v1.s[0], v2.s[0]
     mov     v1.s[1], v3.s[0]
+    ldr     x1, =cam_center
+    ld1     {v0.4s}, [x1]
     fsub    v0.4s, v0.4s, v1.4s
     add     x1, x0, #88
     st1     {v0.4s}, [x1]

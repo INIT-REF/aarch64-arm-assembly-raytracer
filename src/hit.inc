@@ -32,7 +32,8 @@ hit_sphere:
     fmul    v0.4s, v0.4s, v0.4s
     faddp   v0.4s, v0.4s, v0.4s
     faddp   v0.4s, v0.4s, v0.4s
-    ldr     s3, [x25, x10, #16]
+    add     x0, x25, x10
+    ldr     s3, [x0, #16]
     fmul    s3, s3, s3
     fsub    s3, s0, s3
 
@@ -80,7 +81,8 @@ set_hit:
     add     x0, x25, x10
     ld1     {v1.4s}, [x0]
     fsub    v0.4s, v0.4s, v1.4s
-    ldr     s1, [x25, x10, #16]
+    add     x0, x25, x10
+    ldr     s1, [x0, #16]
     dup     v1.4s, v1.s[0]
     fdiv    v0.4s, v0.4s, v1.4s // normal = (hit.point - center) / radius
 
@@ -99,11 +101,13 @@ hit_done:
     st1     {v0.4s}, [x0]
 
     // set material type
-    ldr     w0, [x25, x10, #20]
+    add     x1, x25, x10
+    ldr     w0, [x1, #20]
     str     w0, [x26, #36]
 
     // set color
-    ldp     x0, x1, [x25, x10, #24]
+    add     x2, x25, x10
+    ldp     x0, x1, [x2, #24]
     stp     x0, x1, [x26, #40]
 
     // hit_sphere = true
