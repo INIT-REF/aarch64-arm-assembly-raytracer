@@ -147,7 +147,7 @@ _start:
     ldr     x25, =spheres
     ldr     x26, =hit
     ldr     x27, =lut
-    ldr     x28, =seed // initial seed for rand48
+    ldr     x28, =seed      // initial seed for rand48
     
 
 // main rendering loop
@@ -184,7 +184,7 @@ multisample:
     // get random offset vector
     bl      random_offset
 
-    // get ray direction
+    // get ray.direction
     dup     v1.4s, w19
     dup     v2.4s, w20
     scvtf   v1.4s, v1.4s
@@ -199,23 +199,23 @@ multisample:
     ldr     q1, [x21, #104]
     fadd    v0.4s, v0.4s, v1.4s     // pixel center
     ldr     q1, [x21, #8]
-    fsub    v0.4s, v0.4s, v1.4s     // ray.direction (pixel_center - camera_center)
-    str     q0, [x22, #16]
+    fsub    v0.4s, v0.4s, v1.4s
+    str     q0, [x22, #16]          // ray.direction = pixel_center - camera_center
 
     // init attenuation
     fmov    v0.4s, #1.0
     str     q0, [x23, #16]
     
-    // check if we have a hit and jump to skycol if not
+    // check if we have a hit and jump to skycolor if not
     bl      hit_anything
     cbz     x0, skycolor
 
 scatter: 
-    // if we have a hit, set new ray and test again with depth -= 1
+    // if we have a hit, get scattered ray and test again with depth -= 1
     sub     x27, x27, #1
     cbz     x27, black
     ldr     q1, [x26]
-    str     q1, [x22]   // new ray.origin = hit.point
+    str     q1, [x22]       // new ray.origin = hit.point
 
     // get the material type
     ldr     w0, [x26, 36]
@@ -258,11 +258,11 @@ not_near_zero:
     ldr     q0, [x26, #40]
     ldr     q1, [x23, #16]
     fmul    v0.4s, v0.4s, v1.4s
-    str     q0, [x23, #16]   // attenuation *= hit.color * factor
+    str     q0, [x23, #16]  // attenuation *= hit.color
     bl      hit_anything
     cbnz    x0, scatter
     
-    // no hit anymore -> load final color in v0
+    // no hit anymore -> store final color in attenuation
     ldr     q0, [x23, #16]
     b       skycolor
 
@@ -292,9 +292,9 @@ skycolor:
     fmul    v1.4s, v1.4s, v2.4s
     fadd    v0.4s, v0.4s, v1.4s
     ldr     q1, [x23, #16]
-    fmul    v0.4s, v0.4s, v1.4s
+    fmul    v0.4s, v0.4s, v1.4s // skycolor *= attenuation
 
-add_col:
+add_color:
     // accumulate color and repeat until samples are done
     // then scale color and restore x24 and x27
     ldr     q1, [x23]
