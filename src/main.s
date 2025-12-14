@@ -6,7 +6,7 @@
     height = 225
 
     //rendering settings
-    samples = 100
+    samples = 200
     depth = 50
 
     // camera setup
@@ -170,18 +170,20 @@ multisample:
     ldr     q0, [x21, #8]
     str     q0, [x22]
  
-    // get random offset vector
+    // get random offset vectors
     bl      random_offset
+    dup     v3.4s, v0.s[0]
+    dup     v4.4s, v0.s[1]
 
     // get ray.direction
     dup     v1.4s, w19
     dup     v2.4s, w20
     scvtf   v1.4s, v1.4s
     scvtf   v2.4s, v2.4s
+    fadd    v1.4s, v1.4s, v3.4s
+    fadd    v2.4s, v2.4s, v4.4s
     ldr     q3, [x21, #56]
     ldr     q4, [x21, #72]
-    fadd    v1.4s, v1.4s, v0.4s
-    fadd    v2.4s, v2.4s, v0.4s
     fmul    v1.4s, v1.4s, v3.4s
     fmul    v2.4s, v2.4s, v4.4s
     fadd    v0.4s, v1.4s, v2.4s

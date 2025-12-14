@@ -18,10 +18,11 @@ random_offset:
     scvtf   s3, w3
     fdiv    s3, s3, s2
     movi    v0.4s, #0   // reset v0 to all 0s
+    fmov    s2, #0.5
+    fsub    s1, s1, s2
+    fsub    s3, s3, s2
     mov     v0.s[0], v1.s[0]
     mov     v0.s[1], v3.s[0]
-    fmov    v1.4s, #0.5
-    fsub    v0.4s, v0.4s, v1.4s
     ret
 
 
