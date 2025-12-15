@@ -18,7 +18,7 @@
     v_up:       .float 0.0, 1.0, 0.0, 0.0
     
     // include the scene
-    .include "./src/world.inc"
+//    .include "./src/world.inc"
 
     // some utility vectors
     sky:    .float 0.5, 0.7, 1.0, 0.0
@@ -65,6 +65,9 @@
 
     // seed for rand48
     seed: .dword 987654321
+
+    
+    .include "./src/world.inc"
 
 .section .bss
     // line buffer for a row of RGB triples
