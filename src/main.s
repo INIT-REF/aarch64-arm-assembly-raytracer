@@ -11,7 +11,7 @@
 
     // camera setup
     fov = 20
-    defocus:    .float 1.2
+    defocus:    .float 0.6
     focus_dist: .float 10.0
     look_from:  .float 13.0, 2.0, 3.0, 0.0
     look_at:    .float 0.0, 0.0, 0.0, 0.0
@@ -128,7 +128,7 @@ _start:
     // set sscale vector
     ldr     x0, =samples
     dup     v0.4s, w0
-    scvtf   v0.4s, v0.4s
+    ucvtf   v0.4s, v0.4s
     ldr     x0, =sscale
     ldr     q1, [x0]
     fdiv    v1.4s, v1.4s, v0.4s
@@ -207,8 +207,8 @@ direction:
     // get ray.direction
     dup     v1.4s, w19
     dup     v2.4s, w20
-    scvtf   v1.4s, v1.4s
-    scvtf   v2.4s, v2.4s
+    ucvtf   v1.4s, v1.4s
+    ucvtf   v2.4s, v2.4s
     fadd    v1.4s, v1.4s, v3.4s
     fadd    v2.4s, v2.4s, v4.4s
     ldr     q3, [x21, #56]
@@ -272,12 +272,46 @@ front_face:
     // get sin(theta)
     fmul    s3, s1, s1
     fsub    s3, s2, s3
+    fsqrt   s3, s3
 
     // check if refraction index * sin(theta) > 1
     fmul    s3, s10, s3
     fcmgt   s3, s3, s2
     fmov    w0, s3
     cbnz    x0, metal   // if > 1 the ray is reflected
+
+    // Schlick's approximation
+    fsub    s3, s2, s10
+    fadd    s4, s2, s10
+    fdiv    s3, s3, s4
+    fmul    s3, s3, s3  // r0
+    fsub    s4, s2, s1
+    fmul    s5, s4, s4
+    fmul    s5, s5, s5
+    fmul    s4, s4, s5  // (1 - cos(theta))^5
+    fsub    s2, s2, s3  // 1 - r0
+    fmul    s2, s2, s4
+    fadd    s2, s2, s3  // result
+
+    // check if result > random double between 0 and 1
+    ldr     w3, [x28]
+    scvtf   s3, w3
+    ldr     x0, =0xffffffff
+    ucvtf   s4, w0
+    fdiv    s3, s3, s4
+    ldr     x1, =25214903917
+    mul     x0, x3, x1
+    add     x0, x0, #11
+    mov     x2, #1
+    lsl     x2, x2, #48
+    udiv    x3, x0, x2
+    msub    x3, x3, x2, x0
+    str     w3, [x28]
+    //fmov    s4, #0.5
+    //fadd    s3, s3, s4
+    fcmgt   s2, s2, s3
+    fmov    w0, s2
+    cbnz    x0, metal   // if true, the ray is reflected
 
     // else we calculate the refraction
     // get r_out_perp

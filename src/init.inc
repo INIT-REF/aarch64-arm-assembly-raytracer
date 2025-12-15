@@ -35,8 +35,8 @@ vp_init:
     // viewport width
     ldr     x1, =width
     ldr     x2, =height
-    scvtf   s2, w1
-    scvtf   s3, w2
+    ucvtf   s2, w1
+    ucvtf   s3, w2
     fmul    s1, s1, s2
     fdiv    s1, s1, s3
     str     s1, [x0]
@@ -132,14 +132,14 @@ vp_init:
     // pixel delta u = viewport u / image width
     ldr     x1, =width
     dup     v5.4s, w1
-    scvtf   v5.4s, v5.4s
+    ucvtf   v5.4s, v5.4s
     fdiv    v5.4s, v3.4s, v5.4s
     str     q5, [x0, #56]
 
     // pixel delta v = viewport v / image height
     ldr     x1, =height
     dup     v5.4s, w1
-    scvtf   v5.4s, v5.4s
+    ucvtf   v5.4s, v5.4s
     fdiv    v5.4s, v4.4s, v5.4s
     str     q5, [x0, #72]
 

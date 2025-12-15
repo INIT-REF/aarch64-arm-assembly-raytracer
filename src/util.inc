@@ -3,9 +3,9 @@
 // generate a random vector for the ray XY offset, result in v0
 random_offset:
     ldr     w3, [x28]
-    scvtf   s1, w3
+    ucvtf   s1, w3
     ldr     x0, =0xffffffff
-    scvtf   s2, x0
+    ucvtf   s2, x0
     fdiv    s1, s1, s2
     ldr     x1, =25214903917
     mul     x0, x3, x1
@@ -15,7 +15,7 @@ random_offset:
     udiv    x3, x0, x2
     msub    x3, x3, x2, x0
     str     w3, [x28]
-    scvtf   s3, w3
+    ucvtf   s3, w3
     fdiv    s3, s3, s2
     movi    v0.4s, #0   // reset v0 to all 0s
     fmov    s2, #0.5
@@ -29,9 +29,9 @@ random_offset:
 // generate a random unit vector, result in v0
 random_unit:
     ldr     w3, [x28]
-    scvtf   s1, w3
+    ucvtf   s1, w3
     ldr     x0, =0xffffffff
-    scvtf   s2, x0
+    ucvtf   s2, x0
     fdiv    s1, s1, s2
     ldr     x1, =25214903917
     mul     x0, x3, x1
@@ -40,14 +40,14 @@ random_unit:
     lsl     x2, x2, #48
     udiv    x3, x0, x2
     msub    x3, x3, x2, x0
-    scvtf   s3, w3
+    ucvtf   s3, w3
     fdiv    s3, s3, s2
     mul     x0, x3, x1
     add     x0, x0, #11
     udiv    x3, x0, x2
     msub    x3, x3, x2, x0
     str     w3, [x28]
-    scvtf   s4, w3
+    ucvtf   s4, w3
     fdiv    s4, s4, s2
     movi    v0.4s, #0   // reset v0 to all 0s
     mov     v0.s[0], v1.s[0]
