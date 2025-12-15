@@ -295,7 +295,7 @@ front_face:
 
     // check if result > random double between 0 and 1
     ldr     w3, [x28]
-    scvtf   s3, w3
+    ucvtf   s3, w3
     ldr     x0, =0xffffffff
     ucvtf   s4, w0
     fdiv    s3, s3, s4
