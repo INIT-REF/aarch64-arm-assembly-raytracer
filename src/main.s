@@ -6,8 +6,8 @@
     height = 450
 
     //rendering settings
-    samples = 4
-    depth = 5
+    samples = 400
+    depth = 50
 
     // camera setup
     fov = 20
