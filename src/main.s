@@ -270,14 +270,14 @@ front_face:
     fmin    s1, s1, s2
     
     // get sin(theta)
-    //fmul    s3, s1, s1
-    //fsub    s1, s2, s3
+    fmul    s3, s1, s1
+    fsub    s3, s2, s3
 
     // check if refraction index * sin(theta) > 1
-    //fmul    s3, s10, s3
-    //fcmgt   s3, s3, s2
-    //fmov    w0, s3
-    //cbnz    x0, metal   // if > 1 the ray is reflected
+    fmul    s3, s10, s3
+    fcmgt   s3, s3, s2
+    fmov    w0, s3
+    cbnz    x0, metal   // if > 1 the ray is reflected
 
     // else we calculate the refraction
     // get r_out_perp
