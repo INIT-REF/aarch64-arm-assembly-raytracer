@@ -2,16 +2,16 @@
 
 .section .rodata
     // output image dimensions
-    width  = 400
-    height = 225
+    width  = 800
+    height = 450
 
     //rendering settings
-    samples = 200
-    depth = 50
+    samples = 4
+    depth = 5
 
     // camera setup
     fov = 20
-    defocus:    .float 0.6
+    defocus:    .float 1.0
     focus_dist: .float 10.0
     look_from:  .float 13.0, 2.0, 3.0, 0.0
     look_at:    .float 0.0, 0.0, 0.0, 0.0
@@ -307,8 +307,6 @@ front_face:
     udiv    x3, x0, x2
     msub    x3, x3, x2, x0
     str     w3, [x28]
-    //fmov    s4, #0.5
-    //fadd    s3, s3, s4
     fcmgt   s2, s2, s3
     fmov    w0, s2
     cbnz    x0, metal   // if true, the ray is reflected
