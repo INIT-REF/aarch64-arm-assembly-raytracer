@@ -244,11 +244,11 @@ scatter:
     cbz     x0, metal       // if type = 1 continue at metal
 
 glass:
-    fmov    s0, #1.5
+    fmov    s10, #1.5
     fmov    s1, #1.0
     ldr     w0, [x26, #60]  // get front face flag
-    cbnz    x0, front_face  // and use 1.5 as the refraction index
-    fdiv    s10, s1, s0      // else use 1 / 1.5
+    cbz     x0, front_face  // and use 1.5 as the refraction index
+    fdiv    s10, s1, s10     // else use 1 / 1.5
 
 front_face:
     // get unit(ray.direction)
@@ -270,14 +270,14 @@ front_face:
     fmin    s1, s1, s2
     
     // get sin(theta)
-    fmul    s3, s1, s1
-    fsub    s1, s2, s3
+    //fmul    s3, s1, s1
+    //fsub    s1, s2, s3
 
     // check if refraction index * sin(theta) > 1
-    fmul    s3, s10, s3
-    fcmgt   s3, s3, s2
-    fmov    w0, s3
-    cbnz    x0, metal   // if > 1 the ray is reflected
+    //fmul    s3, s10, s3
+    //fcmgt   s3, s3, s2
+    //fmov    w0, s3
+    //cbnz    x0, metal   // if > 1 the ray is reflected
 
     // else we calculate the refraction
     // get r_out_perp
