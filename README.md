@@ -13,4 +13,6 @@ make
 ./aarch64ray
 ```
 
-If you have ImageMagick installed, you can easily convert the resulting PPM image to PNG by running ```magick image.ppm image.png```
+If you have ImageMagick installed, you can easily convert the resulting PPM image to PNG by running
+
+```magick image.ppm image.png```
