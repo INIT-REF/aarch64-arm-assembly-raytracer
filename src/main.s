@@ -11,10 +11,10 @@
 
     // camera setup
     fov = 20
-    defocus:    .float 20.0
-    focus_dist: .float 3.4
-    look_from:  .float -2.0, 2.0, 1.0, 0.0
-    look_at:    .float 0.0, 0.0, -1.0, 0.0
+    defocus:    .float 1.2
+    focus_dist: .float 10.0
+    look_from:  .float 13.0, 2.0, 3.0, 0.0
+    look_at:    .float 0.0, 0.0, 0.0, 0.0
     v_up:       .float 0.0, 1.0, 0.0, 0.0
     
     // include the scene
