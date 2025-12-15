@@ -10,7 +10,9 @@
     depth = 50
 
     // camera setup
-    fov = 20 
+    fov = 20
+    defocus:    .float 20.0
+    focus_dist: .float 3.4
     look_from:  .float -2.0, 2.0, 1.0, 0.0
     look_at:    .float 0.0, 0.0, -1.0, 0.0
     v_up:       .float 0.0, 1.0, 0.0, 0.0
@@ -29,6 +31,10 @@
 
     // for near zero
     tiny: .float 0.0000003
+
+    // for degrees to radians
+    pi:   .float 3.141592654
+    _360: .float 360.0
 
     // ppm-file related
     file: .asciz "image.ppm"
@@ -65,7 +71,7 @@
     lbuff: .fill width * 12, 1
 
     // memory for the viewport
-    viewport: .fill 30, 4
+    viewport: .fill 38, 4
 
     // viewport indices:
     //   0 -> width
@@ -77,6 +83,8 @@
     //  72 -> pixel_delta_v
     //  88 -> upper_left
     // 104 -> pixel00_loc
+    // 120 -> defocus_disc_u
+    // 136 -> defocus_disc_v
 
     // memory for the ray
     ray: .fill 8, 4
@@ -166,10 +174,31 @@ render:
 multisample:
     ldr     x27, =depth
 
-    // set ray.origin = camera_center
+    // get ray.origin
+    // if defocus > 0 goto blur
+    ldr     x0, =defocus
+    cbnz    x0, blur
+
+    // else just set it to the cam center
     ldr     q0, [x21, #8]
     str     q0, [x22]
- 
+    b       direction
+
+blur:
+    // get random origin depending on defocus value
+    bl      random_offset
+    dup     v1.4s, v0.s[0]
+    dup     v2.4s, v0.s[1]
+    ldr     q0, [x21, #120]
+    fmul    v0.4s, v0.4s, v1.4s
+    ldr     q1, [x21, #136]
+    fmul    v1.4s, v1.4s, v2.4s
+    ldr     q2, [x21, #8]
+    fadd    v0.4s, v0.4s, v1.4s
+    fadd    v0.4s, v0.4s, v2.4s
+    str     q0, [x22]
+
+direction:
     // get random offset vectors
     bl      random_offset
     dup     v3.4s, v0.s[0]
@@ -189,9 +218,9 @@ multisample:
     fadd    v0.4s, v1.4s, v2.4s
     ldr     q1, [x21, #104]
     fadd    v0.4s, v0.4s, v1.4s     // pixel center
-    ldr     q1, [x21, #8]
+    ldr     q1, [x22]
     fsub    v0.4s, v0.4s, v1.4s
-    str     q0, [x22, #16]          // ray.direction = pixel_center - camera_center
+    str     q0, [x22, #16]          // ray.direction = pixel_sample - ray.origin
 
     // init attenuation
     fmov    v0.4s, #1.0
