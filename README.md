@@ -2,7 +2,7 @@
 
 A raytracer in aarch64 assembly, following the [tutorials](https://raytracing.github.io/) by Peter Shirley, Trevor David Black and Steve Hollasch.
 
-At the moment, the first book of the series is done, and the result looks like this (using an output size of 800x450, 400 samples per pixel and a maximum depth of 50):
+At the moment the first book of the series is done, and the result looks like this (using an output size of 800x450, 400 samples per pixel and a maximum depth of 50):
 
 ![render](image.png)
 
